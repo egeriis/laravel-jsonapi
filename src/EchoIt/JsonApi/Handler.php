@@ -1,6 +1,7 @@
 <?php namespace EchoIt\JsonApi;
 
 use Illuminate\Support\Collection;
+use Illuminate\Http\Response as BaseResponse;
 
 /**
  * Abstract class used to extend model API handlers from.
@@ -23,7 +24,7 @@ abstract class Handler
     const ERROR_UNKNOWN_LINKED_RESOURCES = 2;
     const ERROR_NO_ID = 4;
     const ERROR_INVALID_ATTRS = 8;
-    const ERROR_RESERVED_4 = 16;
+    const ERROR_HTTP_METHOD_NOT_ALLOWED = 16;
     const ERROR_RESERVED_5 = 32;
     const ERROR_RESERVED_6 = 64;
     const ERROR_RESERVED_7 = 128;
@@ -58,6 +59,14 @@ abstract class Handler
      */
     public function fulfillRequest()
     {
+        if ( ! $this->supportsMethod($this->request->method)) {
+            throw new Exception(
+                'Method not allowed',
+                static::ERROR_SCOPE | static::ERROR_HTTP_METHOD_NOT_ALLOWED,
+                BaseResponse::HTTP_METHOD_NOT_ALLOWED
+            );
+        }
+
         $methodName = static::methodHandlerName($this->request->method);
         $models = $this->{$methodName}($this->request);
 
@@ -65,7 +74,7 @@ abstract class Handler
             throw new Exception(
                 'Unknown ID',
                 static::ERROR_SCOPE | static::ERROR_UNKNOWN_ID,
-                404
+                BaseResponse::HTTP_NOT_FOUND
             );
         }
 
