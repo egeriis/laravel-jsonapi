@@ -1,0 +1,19 @@
+{
+    "name": "echo-it/laravel-jsonapi",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Ronni Egeriis Persson",
+            "email": "ronni@egeriis.me"
+        }
+    ],
+    "require": {
+        "php": ">=5.4.0",
+        "illuminate/support": "4.*"
+    },
+    "autoload": {
+        "psr-0": {
+            "EchoIt\\JsonApi\\": "src/"
+        }
+    }
+}
