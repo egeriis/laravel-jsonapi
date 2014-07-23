@@ -6,7 +6,7 @@ Make it a breeze to create a [jsonapi.org](http://jsonapi.org/) compliant API wi
 Installation
 -----
 
-Add `laravel-jsonapi` to your composer.json dependency list and run `composer update`.
+Add `echo-it/laravel-jsonapi` to your composer.json dependency list and run `composer update`.
 
 ### Requirements
 
