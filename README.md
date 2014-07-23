@@ -21,7 +21,7 @@ This library is made with the concept of exposing models in mind, as found in th
 
 In few steps you can expose your models:
 
-1. **Create a route to handle the requests**
+1. **Create a route to direct the requests**
 
     In this example, we use a generic route for all models and HTTP methods:
 
@@ -29,7 +29,9 @@ In few steps you can expose your models:
     Route::any('{model}/{id?}', 'ApiController@handleRequest');
     ```
 
-2. **Create an ApiController to handle the requests**
+2. **Create your controller to handle the request**
+
+    Your controller is responsible to handling input, instantiating a handler class and returning the response.
 
     ```php
     <?php
@@ -72,6 +74,8 @@ In few steps you can expose your models:
     ```
 
 3. **Create a handler for your model**
+
+    A handler is responsible for exposing a single model.
 
     In this example we have create a handler which supports the following requests:
 
