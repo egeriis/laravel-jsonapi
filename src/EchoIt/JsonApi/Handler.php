@@ -25,7 +25,7 @@ abstract class Handler
     const ERROR_NO_ID = 4;
     const ERROR_INVALID_ATTRS = 8;
     const ERROR_HTTP_METHOD_NOT_ALLOWED = 16;
-    const ERROR_RESERVED_5 = 32;
+    const ERROR_ID_PROVIDED_NOT_ALLOWED = 32;
     const ERROR_RESERVED_6 = 64;
     const ERROR_RESERVED_7 = 128;
     const ERROR_RESERVED_8 = 256;
