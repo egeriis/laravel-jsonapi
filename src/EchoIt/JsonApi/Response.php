@@ -51,11 +51,11 @@ class Response
      * @param  string $bodyKey The key on which to set the main response.
      * @return Illuminate\Http\JsonResponse
      */
-    public function toJsonResponse($bodyKey = 'data')
+    public function toJsonResponse($bodyKey = 'data', $options = 0)
     {
         return new JsonResponse(array_merge(
             [ $bodyKey => $this->body ],
             array_filter($this->responseData)
-        ));
+        ), 200, [], $options);
     }
 }
