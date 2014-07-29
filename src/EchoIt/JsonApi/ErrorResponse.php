@@ -16,15 +16,13 @@ class ErrorResponse extends JsonResponse
      * @param mixed  $errorCode      Internal error code
      * @param string $errorTitle     Error description
      */
-    public function __construct($httpStatusCode, $errorCode, $errorTitle)
+    public function __construct($httpStatusCode, $errorCode, $errorTitle, array $additionalAttrs = array())
     {
         $data = [
-            'errors' => [
-                [
-                    'code' => $errorCode,
-                    'title' => $errorTitle
-                ]
-            ]
+            'errors' => [ array_merge(
+                [ 'code' => $errorCode, 'title' => $errorTitle ],
+                $additionalAttrs
+            ) ]
         ];
         parent::__construct($data, $httpStatusCode);
     }
