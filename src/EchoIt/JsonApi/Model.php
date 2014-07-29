@@ -11,6 +11,13 @@ use Illuminate\Database\Eloquent\Collection;
 class Model extends \Eloquent
 {
     /**
+     * Let's guard these fields per default
+     *
+     * @var array
+     */
+    protected $guarded = ['id', 'created_at', 'updated_at'];
+
+    /**
      * Convert the model instance to an array. This method overrides that of
      * Eloquent to prevent relations to be serialize into output array.
      *
