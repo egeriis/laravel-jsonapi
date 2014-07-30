@@ -22,12 +22,21 @@ class Response
     protected $body;
 
     /**
+     * HTTP status code
+     *
+     * @var int
+     */
+    protected $httpStatusCode;
+
+    /**
      * Constructor
+     *
      * @param array|object $body
      */
-    public function __construct($body)
+    public function __construct($body, $httpStatusCode = 200)
     {
         $this->body = $body;
+        $this->httpStatusCode = $httpStatusCode;
     }
 
     /**
@@ -56,6 +65,6 @@ class Response
         return new JsonResponse(array_merge(
             [ $bodyKey => $this->body ],
             array_filter($this->responseData)
-        ), 200, [], $options);
+        ), $this->httpStatusCode, [], $options);
     }
 }

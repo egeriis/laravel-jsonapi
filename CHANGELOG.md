@@ -15,3 +15,8 @@ v1.2
 v1.2.1
 
  1. Fixed a bug where linked resources would not be associated to requested models
+
+v1.2.2
+
+ 1. Implemented proper response codes for various HTTP methods as required by jsonapi.org spec
+ 2. Added a `ERROR_MISSING_DATA` constant to `Handler` for generic use where insufficient data was provided

@@ -26,7 +26,7 @@ abstract class Handler
     const ERROR_INVALID_ATTRS = 8;
     const ERROR_HTTP_METHOD_NOT_ALLOWED = 16;
     const ERROR_ID_PROVIDED_NOT_ALLOWED = 32;
-    const ERROR_RESERVED_6 = 64;
+    const ERROR_MISSING_DATA = 64;
     const ERROR_RESERVED_7 = 128;
     const ERROR_RESERVED_8 = 256;
     const ERROR_RESERVED_9 = 512;
@@ -82,7 +82,7 @@ abstract class Handler
             $response = $models;
         } else {
             $models->load($this->exposedRelationsFromRequest());
-            $response = new Response($models);
+            $response = new Response($models, static::successfulHttpStatusCode($this->request->method));
             $response->linked = $this->getLinkedModels($models);
             $response->errors = $this->getNonBreakingErrors();
         }
@@ -160,6 +160,29 @@ abstract class Handler
         }
 
         return $errors;
+    }
+
+    /**
+     * A method for getting the proper HTTP status code for a successful request
+     *
+     * @param  string $method "PUT", "POST", "DELETE" or "GET"
+     * @return int
+     */
+    public static function successfulHttpStatusCode($method)
+    {
+        switch ($method) {
+            case 'PUT':
+            case 'POST':
+            case 'DELETE':
+                return BaseResponse::HTTP_NO_CONTENT;
+
+            case 'GET':
+                return BaseResponse::HTTP_OK;
+        }
+
+        // Code shouldn't reach this point, but if it does we assume that the
+        // client has made a bad request, e.g. PATCH
+        return BaseResponse::HTTP_BAD_REQUEST;
     }
 
     /**
