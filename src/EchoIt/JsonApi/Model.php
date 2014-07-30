@@ -25,6 +25,10 @@ class Model extends \Eloquent
      */
     public function toArray()
     {
-        return $this->attributesToArray();
+        $relations = array_map(function($models) {
+            return array_pluck($models, 'id');
+        }, $this->relationsToArray());
+
+        return array_merge($this->attributesToArray(), $relations);
     }
 }

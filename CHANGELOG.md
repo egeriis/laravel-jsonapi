@@ -11,3 +11,7 @@ v1.2
 
  1. Added default value to `$guarded` on Model
  2. Added the ability to pass JSON encode options to `toJsonResponse`
+
+v1.2.1
+
+ 1. Fixed a bug where linked resources would not be associated to requested models
