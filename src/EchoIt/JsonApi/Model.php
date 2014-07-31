@@ -25,9 +25,16 @@ class Model extends \Eloquent
      */
     public function toArray()
     {
-        $relations = array_map(function($models) {
-            return array_pluck($models, 'id');
-        }, $this->relationsToArray());
+        $relations = [];
+        foreach ($this->getArrayableRelations() as $relation => $value) {
+            if (in_array($relation, $this->hidden)) continue;
+
+            if ($value instanceof BaseModel) {
+                $relations[$relation] = $value->id;
+            } else if ($value instanceof Collection) {
+                $relations[$relation] = array_pluck($value, 'id');
+            }
+        }
 
         return array_merge($this->attributesToArray(), $relations);
     }

@@ -122,7 +122,8 @@ abstract class Handler
         $models = $models instanceof Collection ? $models : [$models];
 
         foreach ($models as $model) {
-            foreach ($model->getRelations() as $key => $collection) {
+            foreach ($this->exposedRelationsFromRequest() as $key) {
+                $collection = $model->{$key};
                 $l = (
                     array_key_exists($key, $linked)
                         ? $linked[$key]
