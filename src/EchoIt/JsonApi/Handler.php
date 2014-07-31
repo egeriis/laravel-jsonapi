@@ -123,14 +123,20 @@ abstract class Handler
 
         foreach ($models as $model) {
             foreach ($this->exposedRelationsFromRequest() as $key) {
-                $collection = $model->{$key};
+                $value = $model->{$key};
+
+                if ( ! $value instanceof Collection) {
+                    $linked[$key] = $value;
+                    continue;
+                }
+
                 $l = (
                     array_key_exists($key, $linked)
                         ? $linked[$key]
                         : ($linked[$key] = new Collection)
                 );
 
-                foreach ($collection as $obj) {
+                foreach ($value as $obj) {
                     // Check whether the object is already included in the response on it's ID
                     if (in_array($obj->id, $l->lists('id'))) continue;
 

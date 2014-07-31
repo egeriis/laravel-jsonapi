@@ -1,6 +1,7 @@
 <?php namespace EchoIt\JsonApi;
 
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model as BaseModel;
 
 /**
  * This class is used to extend models from, that will be exposed through
@@ -36,6 +37,13 @@ class Model extends \Eloquent
             }
         }
 
-        return array_merge($this->attributesToArray(), $relations);
+        if ( ! count($relations)) {
+            return $this->attributesToArray();
+        }
+
+        return array_merge(
+            $this->attributesToArray(),
+            [ 'links' => $relations ]
+        );
     }
 }
