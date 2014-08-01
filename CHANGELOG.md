@@ -33,3 +33,8 @@ v1.2.4
 ------
 
  1. Bugfixes
+
+v1.2.5
+------
+
+ 1. Add ability to pass additional error details (or *attributes*) through an `Exception`

@@ -8,6 +8,7 @@
 class Exception extends \Exception
 {
     protected $httpStatusCode;
+    protected $additionalAttrs;
 
     /**
      * Constructor.
@@ -16,11 +17,12 @@ class Exception extends \Exception
      * @param int     $code           The Exception code
      * @param int     $httpStatusCode HTTP status code which can be used for broken request
      */
-    public function __construct($message = '', $code = 0, $httpStatusCode = 500)
+    public function __construct($message = '', $code = 0, $httpStatusCode = 500, array $additionalAttrs = array())
     {
         parent::__construct($message, $code);
 
         $this->httpStatusCode = $httpStatusCode;
+        $this->additionalAttrs = $additionalAttrs;
     }
 
     /**
@@ -30,6 +32,6 @@ class Exception extends \Exception
      */
     public function response()
     {
-        return new ErrorResponse($this->httpStatusCode, $this->code, $this->message);
+        return new ErrorResponse($this->httpStatusCode, $this->code, $this->message, $this->additionalAttrs);
     }
 }
