@@ -125,9 +125,9 @@ abstract class Handler
             foreach ($this->exposedRelationsFromRequest() as $key) {
                 $value = $model->{$key};
 
+                if (is_null($value)) continue;
                 if ( ! $value instanceof Collection) {
-                    $linked[$key] = $value;
-                    continue;
+                    $value = [$value];
                 }
 
                 $l = (
