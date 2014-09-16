@@ -216,7 +216,7 @@ abstract class Handler
      *
      * @param  array &$array
      * @param  string $key
-     * @return void
+     * @return Illuminate\Database\Eloquent\Collection
      */
     protected static function getCollectionOrCreate(&$array, $key)
     {
