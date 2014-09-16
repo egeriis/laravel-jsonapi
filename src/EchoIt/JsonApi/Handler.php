@@ -123,24 +123,16 @@ abstract class Handler
 
         foreach ($models as $model) {
             foreach ($this->exposedRelationsFromRequest() as $key) {
-                $value = $model->{$key};
-
+                $value = static::getModelsForRelation($model, $key);
                 if (is_null($value)) continue;
-                if ( ! $value instanceof Collection) {
-                    $value = [$value];
-                }
 
-                $l = (
-                    array_key_exists($key, $linked)
-                        ? $linked[$key]
-                        : ($linked[$key] = new Collection)
-                );
+                $links = self::getCollectionOrCreate($linked, $key);
 
                 foreach ($value as $obj) {
                     // Check whether the object is already included in the response on it's ID
-                    if (in_array($obj->id, $l->lists('id'))) continue;
+                    if (in_array($obj->id, $links->lists('id'))) continue;
 
-                    $l->push($obj);
+                    $links->push($obj);
                 }
             }
         }
@@ -201,5 +193,34 @@ abstract class Handler
     protected static function methodHandlerName($method)
     {
         return 'handle' . ucfirst(strtolower($method));
+    }
+
+    /**
+     * Returns the models from a relationship. Will always return as array.
+     *
+     * @param  Illuminate\Database\Eloquent\Model $model
+     * @param  string $relationKey
+     * @return array|Illuminate\Database\Eloquent\Collection
+     */
+    protected static function getModelsForRelation($model, $relationKey)
+    {
+        $relationModels = $model->{$relationKey};
+        if (is_null($relationModels)) return null;
+
+        if ( ! $relationModels instanceof Collection) return [ $relationModels ];
+    }
+
+    /**
+     * This method returns the value from given array and key, and will create a
+     * new Collection instance on the key if it doesn't already exist
+     *
+     * @param  array &$array
+     * @param  string $key
+     * @return void
+     */
+    protected static function getCollectionOrCreate(&$array, $key)
+    {
+        if (array_key_exists($key, $array)) return $array[$key];
+        return ($array[$key] = new Collection);
     }
 }
