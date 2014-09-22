@@ -208,6 +208,7 @@ abstract class Handler
         if (is_null($relationModels)) return null;
 
         if ( ! $relationModels instanceof Collection) return [ $relationModels ];
+        return $relationModels;
     }
 
     /**
