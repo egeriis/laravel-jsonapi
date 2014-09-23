@@ -33,6 +33,7 @@ class Model extends \Eloquent
             if ($value instanceof BaseModel) {
                 $relations[$relation] = $value->id;
             } else if ($value instanceof Collection) {
+                $relation = \str_plural($relation);
                 $relations[$relation] = array_pluck($value, 'id');
             }
         }
