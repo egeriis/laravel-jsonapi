@@ -126,7 +126,7 @@ abstract class Handler
                 $value = static::getModelsForRelation($model, $key);
                 if (is_null($value)) continue;
 
-                $links = self::getCollectionOrCreate($linked, $key);
+                $links = self::getCollectionOrCreate($linked, \str_plural($key));
 
                 foreach ($value as $obj) {
                     // Check whether the object is already included in the response on it's ID
