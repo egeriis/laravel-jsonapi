@@ -126,7 +126,7 @@ abstract class Handler
                 $value = static::getModelsForRelation($model, $key);
                 if (is_null($value)) continue;
 
-                $links = self::getCollectionOrCreate($linked, \str_plural($key));
+                $links = self::getCollectionOrCreate($linked, static::getModelNameForRelation($relationName));
 
                 foreach ($value as $obj) {
                     // Check whether the object is already included in the response on it's ID
@@ -223,5 +223,19 @@ abstract class Handler
     {
         if (array_key_exists($key, $array)) return $array[$key];
         return ($array[$key] = new Collection);
+    }
+
+    /**
+     * The return value of this method will be used as the key to store the
+     * linked model from a relationship. Per default it will return the plural
+     * version of the relation name.
+     * Override this method to map a relation name to a different key.
+     *
+     * @param  string $relationName
+     * @return string
+     */
+    protected static function getModelNameForRelation($relationName)
+    {
+        return \str_plural($relationName);
     }
 }
