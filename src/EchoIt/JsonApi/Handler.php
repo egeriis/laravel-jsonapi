@@ -122,8 +122,8 @@ abstract class Handler
         $models = $models instanceof Collection ? $models : [$models];
 
         foreach ($models as $model) {
-            foreach ($this->exposedRelationsFromRequest() as $key) {
-                $value = static::getModelsForRelation($model, $key);
+            foreach ($this->exposedRelationsFromRequest() as $relationName) {
+                $value = static::getModelsForRelation($model, $relationName);
                 if (is_null($value)) continue;
 
                 $links = self::getCollectionOrCreate($linked, static::getModelNameForRelation($relationName));
