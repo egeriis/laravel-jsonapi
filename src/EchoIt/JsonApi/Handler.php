@@ -81,8 +81,12 @@ abstract class Handler
         if ($models instanceof Response) {
             $response = $models;
         } else {
-            foreach ($models as $model) {
-                $model->load($this->exposedRelationsFromRequest());
+            if ($models instanceof Collection) {
+                foreach ($models as $model) {
+                    $model->load($this->exposedRelationsFromRequest());
+                }
+            } else {
+                $models->load($this->exposedRelationsFromRequest());
             }
             $response = new Response($models, static::successfulHttpStatusCode($this->request->method));
             $response->linked = $this->getLinkedModels($models);
