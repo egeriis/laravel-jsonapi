@@ -45,25 +45,31 @@ v1.2.6
  1. Fix a bug which caused linked models to not be correctly included
 
 v1.2.7
-______
+------
 
  1. Fix a mistake in phpDoc block
 
 v1.2.8
-______
+------
 
  1. Fix a bug which caused the handler not to expose models from a has-many relationship
 
 v1.2.9
-______
+------
 
  1. Ensure that toMany relations are presented on the entity with a plural key name
 
 v1.2.10
-_______
+-------
 
  1. Add the ability to map a relation name to a non-default key when serializing linked objects
 
 v1.2.11
+-------
 
  1. Add workaround for loading of nested relationships, see commit for details
+
+v1.2.12
+-------
+
+ 1. Fix a bug with previous update
