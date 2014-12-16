@@ -63,3 +63,7 @@ v1.2.10
 _______
 
  1. Add the ability to map a relation name to a non-default key when serializing linked objects
+
+v1.2.11
+
+ 1. Add workaround for loading of nested relationships, see commit for details
