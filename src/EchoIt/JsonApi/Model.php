@@ -31,10 +31,10 @@ class Model extends \Eloquent
             if (in_array($relation, $this->hidden)) continue;
 
             if ($value instanceof BaseModel) {
-                $relations[$relation] = $value->id;
+                $relations[$relation] = $value->getKey ();
             } else if ($value instanceof Collection) {
                 $relation = \str_plural($relation);
-                $relations[$relation] = array_pluck($value, 'id');
+                $relations[$relation] = array_pluck($value, $value->primaryKey);
             }
         }
 
