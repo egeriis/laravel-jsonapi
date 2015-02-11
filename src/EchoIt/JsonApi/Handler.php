@@ -136,7 +136,7 @@ abstract class Handler
 
                 foreach ($value as $obj) {
                     // Check whether the object is already included in the response on it's ID
-                    if (in_array ($obj->getKey (), $links->lists ($obj->primaryKey))) continue;
+                    if (in_array($obj->getKey (), $links->lists($obj->primaryKey))) continue;
 
                     $links->push($obj);
                 }
