@@ -1,7 +1,7 @@
-JSON API helpers for Laravel 4
+JSON API helpers for Laravel 5
 =====
 
-Make it a breeze to create a [jsonapi.org](http://jsonapi.org/) compliant API with Laravel 4.
+Make it a breeze to create a [jsonapi.org](http://jsonapi.org/) compliant API with Laravel 5.
 
 Installation
 -----
@@ -11,7 +11,7 @@ Add `echo-it/laravel-jsonapi` to your composer.json dependency list and run `com
 ### Requirements
 
 * PHP 5.4+
-* Laravel 4 *(Tested with 4.2)*
+* Laravel 5
 
 
 Using laravel-jsonapi
