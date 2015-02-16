@@ -34,43 +34,44 @@ In few steps you can expose your models:
     Your controller is responsible to handling input, instantiating a handler class and returning the response.
 
     ```php
-    <?php
+    <?php namespace App\Http\Controllers;
 
-    use EchoIt\JsonApi\Request as ApiRequest;
-    use EchoIt\JsonApi\ErrorResponse as ApiErrorResponse;
-    use EchoIt\JsonApi\Exception as ApiException;
+use EchoIt\JsonApi\Request as ApiRequest;
+use EchoIt\JsonApi\ErrorResponse as ApiErrorResponse;
+use EchoIt\JsonApi\Exception as ApiException;
+use Request;
 
-    class ApiController extends Controller
+class ApiController extends Controller
+{
+    public function handleRequest($modelName, $id = null)
     {
-        public function handleRequest($modelName, $id = null)
-        {
-            /**
-             * Create handler name from model name
-             * @var string
-             */
-            $handlerClass = 'API\\' . ucfirst($modelName) . 'Handler';
+        /**
+         * Create handler name from model name
+         * @var string
+         */
+        $handlerClass = 'App\\Handlers\\' . ucfirst($modelName) . 'Handler';
 
-            if (class_exists($handlerClass)) {
-                $method = Request::getMethod();
-                $include = ($i = Input::get('include')) ? explode(',', $i) : $i;
+        if (class_exists($handlerClass)) {
+            $method = Request::method();
+            $include = ($i = Request::input('include')) ? explode(',', $i) : $i;
 
-                $request = new ApiRequest($method, $id, $include);
-                $handler = new $handlerClass($request);
+            $request = new ApiRequest($method, $id, $include);
+            $handler = new $handlerClass($request);
 
-                // A handler can throw EchoIt\JsonApi\Exception which must be gracefully handled to give proper response
-                try {
-                    $res = $handler->fulfillRequest();
-                } catch (ApiException $e) {
-                    return $e->response();
-                }
-
-                return $res->toJsonResponse(str_plural($modelName));
+            // A handler can throw EchoIt\JsonApi\Exception which must be gracefully handled to give proper response
+            try {
+                $res = $handler->fulfillRequest();
+            } catch (ApiException $e) {
+                return $e->response();
             }
 
-            // If a handler class does not exist for requested model, it is not considered to be exposed in the API
-            return new ErrorResponse(404, 404, 'Entity not found');
+            return $res->toJsonResponse(str_plural($modelName));
         }
+
+        // If a handler class does not exist for requested model, it is not considered to be exposed in the API
+        return new ApiErrorResponse(404, 404, 'Entity not found');
     }
+}
     ```
 
 3. **Create a handler for your model**
@@ -84,58 +85,62 @@ In few steps you can expose your models:
     * PUT /users/[id]
 
     ```php
-    <?php
+    <?php namespace App\Handlers;
 
-    use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Response;
+use App\Models\User;
 
-    class UsersHandler extends EchoIt\JsonApi\Handler
+use EchoIt\JsonApi\Request as ApiRequest;
+use EchoIt\JsonApi\Handler as ApiHandler;
+
+class UsersHandler extends ApiHandler
+{
+    const ERROR_SCOPE = 1024;
+	
+	protected static $exposedRelations = [];
+
+    public function handleGet(ApiRequest $request)
     {
-        const ERROR_SCOPE = 1024;
-
-        protected static $exposedRelations = ['friends'];
-
-        public function handleGet(EchoIt\JsonApi\Request $request)
-        {
-            if (empty($request->id)) {
-                return $this->handleGetAll($request);
-            }
-
-            return \User::find($request->id);
+        if (empty($request->id)) {
+            return $this->handleGetAll($request);
         }
 
-        protected function handleGetAll(EchoIt\JsonApi\Request $request)
-        {
-            return \User::all();
-        }
-
-        public function handlePut(EchoIt\JsonApi\Request $request)
-        {
-            if (empty($request->id)) {
-                throw new EchoIt\JsonApi\Exception(
-                    'No ID provided',
-                    static::ERROR_SCOPE | static::ERROR_NO_ID,
-                    Response::HTTP_BAD_REQUEST
-                );
-            }
-
-            $updates = \Input::json('users');
-            $user = \User::find($request->id);
-
-            if (is_null($user)) return null;
-
-            $user->fill($updates);
-
-            if ( ! $user->save()) {
-                throw new EchoIt\JsonApi\Exception(
-                    'An unknown error occured',
-                    static::ERROR_SCOPE | static::ERROR_UNKNOWN,
-                    Response::HTTP_INTERNAL_SERVER_ERROR
-                );
-            }
-
-            return $user;
-        }
+        return User::find($request->id);
     }
+
+    protected function handleGetAll(ApiRequest $request)
+    {
+        return User::all();
+    }
+
+    public function handlePut(ApiRequest $request)
+    {
+        if (empty($request->id)) {
+            throw new EchoIt\JsonApi\Exception(
+                'No ID provided',
+                static::ERROR_SCOPE | static::ERROR_NO_ID,
+                Response::HTTP_BAD_REQUEST
+            );
+        }
+
+        $updates = \Input::json('users');
+        $user = User::find($request->id);
+
+        if (is_null($user)) return null;
+
+        $user->fill($updates);
+
+        if ( ! $user->save()) {
+            throw new EchoIt\JsonApi\Exception(
+                'An unknown error occurred',
+                static::ERROR_SCOPE | static::ERROR_UNKNOWN,
+                Response::HTTP_INTERNAL_SERVER_ERROR
+            );
+        }
+
+        return $user;
+    }
+}
     ```
 
     > **Note:** Extend your model from `EchoIt\JsonApi\Model` rather than `Eloquent` to get the proper response for linked resources.
