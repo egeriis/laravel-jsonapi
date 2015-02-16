@@ -27,6 +27,20 @@ class Request
      * @var array
      */
     public $include;
+	
+	/**
+     * Contains an array of column names to sort on
+     *
+     * @var array
+     */
+    public $sort;
+	
+	/**
+     * Contains an array of key/value pairs to filter on
+     *
+     * @var array
+     */
+    public $filter;
 
     /**
      * Constructor.
@@ -35,10 +49,12 @@ class Request
      * @param int    $id
      * @param array  $include
      */
-    public function __construct($method, $id = null, $include = [])
+    public function __construct($method, $id = null, $include = [], $sort = [], $filter = [])
     {
         $this->method = $method;
         $this->id = $id;
         $this->include = $include ?: [];
+		$this->sort = $sort ?: [];
+		$this->filter = $filter ?: [];
     }
 }
