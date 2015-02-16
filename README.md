@@ -54,8 +54,10 @@ class ApiController extends Controller
         if (class_exists($handlerClass)) {
             $method = Request::method();
             $include = ($i = Request::input('include')) ? explode(',', $i) : $i;
+            $sort = ($i = Request::input('sort')) ? explode(',', $i) : $i;
+	    $filter = ($i = Request::except('sort', 'include')) ? $i : [];
 
-            $request = new ApiRequest($method, $id, $include);
+            $request = new ApiRequest($method, $id, $include, $sort, $filter);
             $handler = new $handlerClass($request);
 
             // A handler can throw EchoIt\JsonApi\Exception which must be gracefully handled to give proper response
@@ -156,7 +158,8 @@ According to [jsonapi.org](http://jsonapi.org):
 * [Resource Relationships](http://jsonapi.org/format/#document-structure-resource-relationships)
    * Only through [Inclusion of Linked Resources](http://jsonapi.org/format/#fetching-includes)
 * [Compound Documents](http://jsonapi.org/format/#document-structure-compound-documents)
-
+* [Sorting](http://jsonapi.org/format/#fetching-sorting)
+* [Filtering](http://jsonapi.org/format/#fetching-filtering)
 
 Wishlist
 -----
@@ -165,5 +168,5 @@ Wishlist
 * [Resource URLs](http://jsonapi.org/format/#document-structure-resource-urls)
 * Requests for multiple [individual resources](http://jsonapi.org/format/#urls-individual-resources), e.g. `/users/1,2,3`
 * [Sparse Fieldsets](http://jsonapi.org/format/#fetching-sparse-fieldsets)
-* [Sorting](http://jsonapi.org/format/#fetching-sorting)
+
 * Some kind of caching mechanism
