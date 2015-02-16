@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Collection;
 use Illuminate\Http\Response as BaseResponse;
+use Illuminate\Http\Request as BaseRequest;
 
 /**
  * Abstract class used to extend model API handlers from.
@@ -89,6 +90,7 @@ abstract class Handler
                 $models->load($this->exposedRelationsFromRequest());
             }
             $response = new Response($models, static::successfulHttpStatusCode($this->request->method));
+		
             $response->linked = $this->getLinkedModels($models);
             $response->errors = $this->getNonBreakingErrors();
         }
@@ -244,4 +246,49 @@ abstract class Handler
     {
         return \str_plural($relationName);
     }
+	
+	/**
+     * Default handling of GET request. Must be called explicitly in handleGet function.
+	 * 
+     * @param  EchoIt\JsonApi\Request $request
+     * @param  EchoIt\JsonApi\Model $models
+     * @return EchoIt\JsonApi\Model
+     */
+    protected function handleGetDefault(Request $request, $model)
+    {
+		
+		if (empty($request->id)) {
+			if (!empty( $request->filter )) {
+				foreach($request->filter as $key=>$value) {
+					$model = $model->where($key, '=', $value);
+				}
+			}
+			if (!empty( $request->sort )) {
+				$dir = 'asc';
+				//just sort on first thing for now...
+				$col = $request->sort[0];
+				if (substr($col, 0, 1) === "-") {
+					$dir = 'desc';
+					$col = substr($col, 1);
+				}
+				$model = $model->orderBy($col, $dir);
+			}
+			
+        } else {
+			$model = $model->where('id', '=', $request->id);
+		}
+		
+		try {
+            $results = $model->get();
+		} catch (\Illuminate\Database\QueryException $e) {
+			throw new Exception(
+                'Database Request Failed in handleGetDefault',
+                static::ERROR_SCOPE | static::ERROR_UNKNOWN_ID,
+                BaseResponse::HTTP_INTERNAL_SERVER_ERROR,
+				array('details' => $e->getMessage())
+            );
+		}
+		return $results;
+    }
+	
 }
