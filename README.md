@@ -90,56 +90,57 @@ class ApiController extends Controller
 use Symfony\Component\HttpFoundation\Response;
 use App\Models\User;
 
+use EchoIt\JsonApi\Exception as ApiException;
 use EchoIt\JsonApi\Request as ApiRequest;
 use EchoIt\JsonApi\Handler as ApiHandler;
 
 class UsersHandler extends ApiHandler
 {
-    const ERROR_SCOPE = 1024;
-	
+	const ERROR_SCOPE = 1024;
+
 	protected static $exposedRelations = [];
 
-    public function handleGet(ApiRequest $request)
-    {
-        if (empty($request->id)) {
-            return $this->handleGetAll($request);
-        }
+	public function handleGet(ApiRequest $request)
+	{
+		if (empty($request->id)) {
+			return $this->handleGetAll($request);
+		}
 
-        return User::find($request->id);
-    }
+		return User::find($request->id);
+	}
 
-    protected function handleGetAll(ApiRequest $request)
-    {
-        return User::all();
-    }
+	protected function handleGetAll(ApiRequest $request)
+	{
+		return User::all();
+	}
 
-    public function handlePut(ApiRequest $request)
-    {
-        if (empty($request->id)) {
-            throw new EchoIt\JsonApi\Exception(
-                'No ID provided',
-                static::ERROR_SCOPE | static::ERROR_NO_ID,
-                Response::HTTP_BAD_REQUEST
-            );
-        }
+	public function handlePut(ApiRequest $request)
+	{
+		if (empty($request->id)) {
+			throw new ApiException(
+				'No ID provided',
+				static::ERROR_SCOPE | static::ERROR_NO_ID,
+				Response::HTTP_BAD_REQUEST
+			);
+		}
 
-        $updates = \Input::json('users');
-        $user = User::find($request->id);
+		$updates = Request::json('users');
+		$user = User::find($request->id);
 
-        if (is_null($user)) return null;
+		if (is_null($user)) return null;
 
-        $user->fill($updates);
+		$user->fill($updates[0]);
 
-        if ( ! $user->save()) {
-            throw new EchoIt\JsonApi\Exception(
-                'An unknown error occurred',
-                static::ERROR_SCOPE | static::ERROR_UNKNOWN,
-                Response::HTTP_INTERNAL_SERVER_ERROR
-            );
-        }
+		if (!$user->save()) {
+			throw new ApiException(
+				'An unknown error occurred',
+				static::ERROR_SCOPE | static::ERROR_UNKNOWN,
+				Response::HTTP_INTERNAL_SERVER_ERROR
+			);
+		}
 
-        return $user;
-    }
+		return $user;
+	}
 }
     ```
 
