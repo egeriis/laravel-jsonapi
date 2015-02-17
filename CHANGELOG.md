@@ -1,6 +1,13 @@
 Changelog
 =========
 
+v2.0.0
+------
+
+ 1. Updated code and docs to support laravel 5.0
+ 2. Added basic support for sorting and filtering
+ 3. Updated POST response to return code 201 as specified in jsonapi specs
+
 v1.1.3
 ------
 
