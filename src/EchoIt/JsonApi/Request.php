@@ -48,6 +48,8 @@ class Request
      * @param string $method
      * @param int    $id
      * @param array  $include
+     * @param array  $sort
+     * @param array  $filter
      */
     public function __construct($method, $id = null, $include = [], $sort = [], $filter = [])
     {
