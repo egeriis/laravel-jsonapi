@@ -82,12 +82,14 @@ class ApiController extends Controller
 
     In this example we have create a handler which supports the following requests:
 
-    * GET /users
-    * GET /users/[id]
-    * PUT /users/[id]
+    * GET /users (ie. handleGet function)
+    * GET /users/[id] (ie. handleGet function)
+    * PUT /users/[id] (ie. handlePut function)
+    
+    Requests are automatically routed to appropriate handle functions.
 
     ```php
-    <?php namespace App\Handlers;
+<?php namespace App\Handlers;
 
 use Symfony\Component\HttpFoundation\Response;
 use App\Models\User;
@@ -95,53 +97,42 @@ use App\Models\User;
 use EchoIt\JsonApi\Exception as ApiException;
 use EchoIt\JsonApi\Request as ApiRequest;
 use EchoIt\JsonApi\Handler as ApiHandler;
+use Request;
 
+/**
+ * Handles API requests for Users.
+ */
 class UsersHandler extends ApiHandler
 {
 	const ERROR_SCOPE = 1024;
-
+	
+	/*
+	* List of relations that can be included in response.
+	* (eg. 'friend' could be included with ?include=friend)
+	*/
 	protected static $exposedRelations = [];
-
+	
+	/**
+	 * Handles GET requests. 
+	 * @param EchoIt\JsonApi\Request $request
+	 * @return EchoIt\JsonApi\Model
+	 */
 	public function handleGet(ApiRequest $request)
 	{
-		if (empty($request->id)) {
-			return $this->handleGetAll($request);
-		}
-
-		return User::find($request->id);
+		//use default GET functionality, which includes
+		//handling of sorting and filtering. 
+		return $this->handleGetDefault($request, new User);
 	}
-
-	protected function handleGetAll(ApiRequest $request)
-	{
-		return User::all();
-	}
-
+	
+	/**
+	 * Handles PUT requests. 
+	 * @param EchoIt\JsonApi\Request $request
+	 * @return EchoIt\JsonApi\Model
+	 */
 	public function handlePut(ApiRequest $request)
 	{
-		if (empty($request->id)) {
-			throw new ApiException(
-				'No ID provided',
-				static::ERROR_SCOPE | static::ERROR_NO_ID,
-				Response::HTTP_BAD_REQUEST
-			);
-		}
-
-		$updates = Request::json('users');
-		$user = User::find($request->id);
-
-		if (is_null($user)) return null;
-
-		$user->fill($updates[0]);
-
-		if (!$user->save()) {
-			throw new ApiException(
-				'An unknown error occurred',
-				static::ERROR_SCOPE | static::ERROR_UNKNOWN,
-				Response::HTTP_INTERNAL_SERVER_ERROR
-			);
-		}
-
-		return $user;
+		//use default PUT functionality
+		return $this->handlePutDefault($request, new User);
 	}
 }
     ```
