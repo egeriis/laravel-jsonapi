@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Collection;
 use Illuminate\Http\Response as BaseResponse;
-use Illuminate\Http\Request as BaseRequest;
+use Request as BaseRequest;
 
 /**
  * Abstract class used to extend model API handlers from.
@@ -132,11 +132,13 @@ abstract class Handler
         foreach ($models as $model) {
             foreach ($this->exposedRelationsFromRequest() as $relationName) {
                 $value = static::getModelsForRelation($model, $relationName);
+
                 if (is_null($value)) continue;
 
                 $links = self::getCollectionOrCreate($linked, static::getModelNameForRelation($relationName));
 
                 foreach ($value as $obj) {
+					
                     // Check whether the object is already included in the response on it's ID
                     if (in_array($obj->getKey(), $links->lists($obj->getKeyName()))) continue;
 
@@ -178,11 +180,12 @@ abstract class Handler
     public static function successfulHttpStatusCode($method)
     {
         switch ($method) {
-            case 'PUT':
+            
             case 'POST':
+				return BaseResponse::HTTP_CREATED;
+			case 'PUT':
             case 'DELETE':
                 return BaseResponse::HTTP_NO_CONTENT;
-
             case 'GET':
                 return BaseResponse::HTTP_OK;
         }
@@ -248,7 +251,8 @@ abstract class Handler
     }
 	
 	/**
-     * Default handling of GET request. Must be called explicitly in handleGet function.
+     * Default handling of GET request. 
+	 * Must be called explicitly in handleGet function.
 	 * 
      * @param  EchoIt\JsonApi\Request $request
      * @param  EchoIt\JsonApi\Model $models
@@ -289,6 +293,92 @@ abstract class Handler
             );
 		}
 		return $results;
+    }
+	
+	/**
+     * Default handling of POST request. 
+	 * Must be called explicitly in handlePost function.
+	 * 
+     * @param  EchoIt\JsonApi\Request $request
+     * @param  EchoIt\JsonApi\Model $models
+     * @return EchoIt\JsonApi\Model
+     */
+	public function handlePostDefault(Request $request, $model)
+    {
+
+        $values = BaseRequest::json($model->getTable());
+        $model->fill($values);
+
+        if ( !$model->save()) {
+            throw new Exception(
+                'An unknown error occurred',
+                static::ERROR_SCOPE | static::ERROR_UNKNOWN,
+                Response::HTTP_INTERNAL_SERVER_ERROR
+            );
+        }
+		
+        return $model;
+    }
+	
+	/**
+     * Default handling of PUT request. 
+	 * Must be called explicitly in handlePut function.
+	 * 
+     * @param  EchoIt\JsonApi\Request $request
+     * @param  EchoIt\JsonApi\Model $models
+     * @return EchoIt\JsonApi\Model
+     */
+    public function handlePutDefault(Request $request, $model)
+    {
+        if (empty($request->id)) {
+            throw new Exception(
+                'No ID provided',
+                static::ERROR_SCOPE | static::ERROR_NO_ID,
+                Response::HTTP_BAD_REQUEST
+            );
+        }
+
+        $updates = BaseRequest::json($model->getTable());
+        $model = $model::find($request->id);
+        if (is_null($model)) return null;
+
+        $model->fill($updates);
+
+        if ( !$model->save()) {
+            throw new Exception(
+                'An unknown error occurred',
+                static::ERROR_SCOPE | static::ERROR_UNKNOWN,
+                Response::HTTP_INTERNAL_SERVER_ERROR
+            );
+        }
+		
+        return $model;
+    }
+	
+	/**
+     * Default handling of DELETE request. 
+	 * Must be called explicitly in handleDelete function.
+	 * 
+     * @param  EchoIt\JsonApi\Request $request
+     * @param  EchoIt\JsonApi\Model $models
+     * @return EchoIt\JsonApi\Model
+     */
+	public function handleDeleteDefault(Request $request, $model)
+    {
+        if (empty($request->id)) {
+            throw new Exception(
+                'No ID provided',
+                static::ERROR_SCOPE | static::ERROR_NO_ID,
+                Response::HTTP_BAD_REQUEST
+            );
+        }
+
+        $model = $model::find($request->id);
+		if (is_null($model)) return null;
+		
+		$model->delete();
+		
+        return $model;
     }
 	
 }
