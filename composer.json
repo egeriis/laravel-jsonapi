@@ -5,6 +5,10 @@
         {
             "name": "Ronni Egeriis Persson",
             "email": "ronni@egeriis.me"
+        },
+		{
+            "name": "Jared Chapiewsky",
+            "email": "chapiewsky@earthlinginteractive.com"
         }
     ],
     "require": {

@@ -1,6 +1,13 @@
 Changelog
 =========
 
+v3.0.0
+------
+
+ 1. Updated code and docs for basic support for jsonapi 1.0.0.rc2 specs
+ 2. Updated support for sorting to allow for multiple items and ascending/descending specifications
+ 3. Added validation of POST/PUT data
+
 v2.0.0
 ------
 
