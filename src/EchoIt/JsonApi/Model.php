@@ -31,12 +31,20 @@ class Model extends \Eloquent
             if (in_array($relation, $this->hidden)) continue;
 
             if ($value instanceof BaseModel) {
-                $relations[$relation] = $value->getKey ();
+                $relations[$relation] = array('id' => $value->getKey(), 'type' => $value->getTable());
             } else if ($value instanceof Collection) {
                 $relation = \str_plural($relation);
-                $relations[$relation] = array_pluck($value, current($value->modelKeys()));
+                $items = [];
+                foreach ($value as $item) {
+                    $items[] = array('id' => $item->getKey(), 'type' => $item->getTable());
+                }
+                $relations[$relation] = $items;
             }
         }
+        
+        //add type parameter
+        $attributes = $this->attributesToArray();
+        $attributes['type'] = $this->getTable();
 
         if ( ! count($relations)) {
             return $this->attributesToArray();
