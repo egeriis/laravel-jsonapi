@@ -126,6 +126,7 @@ abstract class Handler
     protected function getLinkedModels($models)
     {
         $linked = [];
+        $links = new Collection();
         $models = $models instanceof Collection ? $models : [$models];
 
         foreach ($models as $model) {
@@ -134,19 +135,29 @@ abstract class Handler
 
                 if (is_null($value)) continue;
 
-                $links = self::getCollectionOrCreate($linked, static::getModelNameForRelation($relationName));
-
                 foreach ($value as $obj) {
                     
                     // Check whether the object is already included in the response on it's ID
-                    if (in_array($obj->getKey(), $links->lists($obj->getKeyName()))) continue;
+                    $duplicate = false;
+                    $items = $links->where('id', $obj->getKey());
+                    if(count($items) > 0) {
+                        foreach($items as $item) {
+                            if($item->getTable() === $obj->getTable()) {
+                                $duplicate = true;
+                                break;
+                            }
+                        }
+                        if ($duplicate) {
+                            continue;
+                        }
+                    }
 
                     $links->push($obj);
                 }
             }
         }
 
-        return $linked;
+        return $links->toArray();
     }
 
     /**
