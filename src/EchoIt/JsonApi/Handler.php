@@ -90,7 +90,7 @@ abstract class Handler
                 $models->load($this->exposedRelationsFromRequest());
             }
             $response = new Response($models, static::successfulHttpStatusCode($this->request->method));
-		
+        
             $response->linked = $this->getLinkedModels($models);
             $response->errors = $this->getNonBreakingErrors();
         }
@@ -138,7 +138,7 @@ abstract class Handler
                 $links = self::getCollectionOrCreate($linked, static::getModelNameForRelation($relationName));
 
                 foreach ($value as $obj) {
-					
+                    
                     // Check whether the object is already included in the response on it's ID
                     if (in_array($obj->getKey(), $links->lists($obj->getKeyName()))) continue;
 
@@ -182,8 +182,8 @@ abstract class Handler
         switch ($method) {
             
             case 'POST':
-				return BaseResponse::HTTP_CREATED;
-			case 'PUT':
+                return BaseResponse::HTTP_CREATED;
+            case 'PUT':
             case 'DELETE':
                 return BaseResponse::HTTP_NO_CONTENT;
             case 'GET':
@@ -249,61 +249,81 @@ abstract class Handler
     {
         return \str_plural($relationName);
     }
-	
-	/**
+    
+    /**
+     * Function to handle sorting requests. 
+     * 
+     * @param  array $cols list of column names to sort on
+     * @param  EchoIt\JsonApi\Model $model
+     * @return EchoIt\JsonApi\Model
+     */
+    protected function handleSortRequest($cols, $model)
+    {
+        foreach($cols as $col) {
+            if (substr($col, 0, 1) === "+") {
+                $dir = 'asc';
+            } else if (substr($col, 0, 1) === "-") {
+                $dir = 'desc';
+            } else {
+                throw new Exception(
+                    'Sort direction not specified but is required.',
+                    static::ERROR_SCOPE | static::ERROR_UNKNOWN_ID,
+                    BaseResponse::HTTP_INTERNAL_SERVER_ERROR
+                );
+            }
+            $col = substr($col, 1);
+            $model = $model->orderBy($col, $dir);
+        }
+        return $model;
+    }
+    
+    /**
      * Default handling of GET request. 
-	 * Must be called explicitly in handleGet function.
-	 * 
+     * Must be called explicitly in handleGet function.
+     * 
      * @param  EchoIt\JsonApi\Request $request
      * @param  EchoIt\JsonApi\Model $models
      * @return EchoIt\JsonApi\Model
      */
     protected function handleGetDefault(Request $request, $model)
     {
-		
-		if (empty($request->id)) {
-			if (!empty( $request->filter )) {
-				foreach($request->filter as $key=>$value) {
-					$model = $model->where($key, '=', $value);
-				}
-			}
-			if (!empty( $request->sort )) {
-				$dir = 'asc';
-				//just sort on first thing for now...
-				$col = $request->sort[0];
-				if (substr($col, 0, 1) === "-") {
-					$dir = 'desc';
-					$col = substr($col, 1);
-				}
-				$model = $model->orderBy($col, $dir);
-			}
-			
+        
+        if (empty($request->id)) {
+            if (!empty( $request->filter )) {
+                foreach($request->filter as $key=>$value) {
+                    $model = $model->where($key, '=', $value);
+                }
+            }
+            if (!empty( $request->sort )) {
+                $model = $this->handleSortRequest($request->sort, $model);
+            }
+            
         } else {
-			$model = $model->where('id', '=', $request->id);
-		}
-		
-		try {
+            $model = $model->where('id', '=', $request->id);
+        }
+        
+        try {
             $results = $model->get();
-		} catch (\Illuminate\Database\QueryException $e) {
-			throw new Exception(
+        } catch (\Illuminate\Database\QueryException $e) {
+            throw new Exception(
                 'Database Request Failed in handleGetDefault',
                 static::ERROR_SCOPE | static::ERROR_UNKNOWN_ID,
                 BaseResponse::HTTP_INTERNAL_SERVER_ERROR,
-				array('details' => $e->getMessage())
+                array('details' => $e->getMessage())
             );
-		}
-		return $results;
+        }
+        return $results;
     }
-	
-	/**
+    
+    /**
      * Default handling of POST request. 
-	 * Must be called explicitly in handlePost function.
-	 * 
+     * Must be called explicitly in handlePost function.
+     * 
      * @param  EchoIt\JsonApi\Request $request
      * @param  EchoIt\JsonApi\Model $models
      * @return EchoIt\JsonApi\Model
      */
-	public function handlePostDefault(Request $request, $model)
+    public function handlePostDefault(Request $request, $model)
     {
 
         $values = BaseRequest::json($model->getTable());
@@ -316,14 +336,14 @@ abstract class Handler
                 Response::HTTP_INTERNAL_SERVER_ERROR
             );
         }
-		
+        
         return $model;
     }
-	
-	/**
+    
+    /**
      * Default handling of PUT request. 
-	 * Must be called explicitly in handlePut function.
-	 * 
+     * Must be called explicitly in handlePut function.
+     * 
      * @param  EchoIt\JsonApi\Request $request
      * @param  EchoIt\JsonApi\Model $models
      * @return EchoIt\JsonApi\Model
@@ -351,19 +371,19 @@ abstract class Handler
                 Response::HTTP_INTERNAL_SERVER_ERROR
             );
         }
-		
+        
         return $model;
     }
-	
-	/**
+    
+    /**
      * Default handling of DELETE request. 
-	 * Must be called explicitly in handleDelete function.
-	 * 
+     * Must be called explicitly in handleDelete function.
+     * 
      * @param  EchoIt\JsonApi\Request $request
      * @param  EchoIt\JsonApi\Model $models
      * @return EchoIt\JsonApi\Model
      */
-	public function handleDeleteDefault(Request $request, $model)
+    public function handleDeleteDefault(Request $request, $model)
     {
         if (empty($request->id)) {
             throw new Exception(
@@ -374,11 +394,11 @@ abstract class Handler
         }
 
         $model = $model::find($request->id);
-		if (is_null($model)) return null;
-		
-		$model->delete();
-		
+        if (is_null($model)) return null;
+        
+        $model->delete();
+        
         return $model;
     }
-	
+    
 }
