@@ -2,7 +2,6 @@
 
 use Illuminate\Support\Collection;
 use Illuminate\Http\Response as BaseResponse;
-use Request as BaseRequest;
 
 /**
  * Abstract class used to extend model API handlers from.
@@ -278,6 +277,44 @@ abstract class Handler
     }
     
     /**
+     * Parses content from request into an array of values.
+     * 
+     * @param  string $content
+     * @param  string $type the type the content is expected to be. 
+     * @return array
+     */
+    protected function parseRequestContent($content, $type)
+    {
+        $content = json_decode($content, true);
+        if ( empty($content['data'])) {
+            throw new Exception(
+                'Payload either contains misformed JSON or missing "data" parameter.',
+                static::ERROR_SCOPE | static::ERROR_INVALID_ATTRS,
+                BaseResponse::HTTP_INTERNAL_SERVER_ERROR
+            );
+        }
+        
+        $data = $content['data'];
+        if ( !isset($data['type'])) {
+            throw new Exception(
+                '"type" parameter not set in request.',
+                static::ERROR_SCOPE | static::ERROR_INVALID_ATTRS,
+                BaseResponse::HTTP_INTERNAL_SERVER_ERROR
+            );
+        }
+        if ( $data['type'] !== $type) {
+            throw new Exception(
+                '"type" parameter is not valid. Expecting ' . $type,
+                static::ERROR_SCOPE | static::ERROR_INVALID_ATTRS,
+                BaseResponse::HTTP_INTERNAL_SERVER_ERROR
+            );
+        }
+        unset($data['type']);
+        
+        return $data;
+    }
+    
+    /**
      * Default handling of GET request. 
      * Must be called explicitly in handleGet function.
      * 
@@ -326,14 +363,14 @@ abstract class Handler
     public function handlePostDefault(Request $request, $model)
     {
 
-        $values = BaseRequest::json($model->getTable());
+        $values = $this->parseRequestContent($request->content, $model->getTable());
         $model->fill($values);
 
         if ( !$model->save()) {
             throw new Exception(
                 'An unknown error occurred',
                 static::ERROR_SCOPE | static::ERROR_UNKNOWN,
-                Response::HTTP_INTERNAL_SERVER_ERROR
+                BaseResponse::HTTP_INTERNAL_SERVER_ERROR
             );
         }
         
@@ -354,11 +391,12 @@ abstract class Handler
             throw new Exception(
                 'No ID provided',
                 static::ERROR_SCOPE | static::ERROR_NO_ID,
-                Response::HTTP_BAD_REQUEST
+                BaseResponse::HTTP_BAD_REQUEST
             );
         }
 
-        $updates = BaseRequest::json($model->getTable());
+        $updates = $this->parseRequestContent($request->content, $model->getTable());
+        
         $model = $model::find($request->id);
         if (is_null($model)) return null;
 
@@ -368,7 +406,7 @@ abstract class Handler
             throw new Exception(
                 'An unknown error occurred',
                 static::ERROR_SCOPE | static::ERROR_UNKNOWN,
-                Response::HTTP_INTERNAL_SERVER_ERROR
+                BaseResponse::HTTP_INTERNAL_SERVER_ERROR
             );
         }
         
@@ -389,7 +427,7 @@ abstract class Handler
             throw new Exception(
                 'No ID provided',
                 static::ERROR_SCOPE | static::ERROR_NO_ID,
-                Response::HTTP_BAD_REQUEST
+                BaseResponse::HTTP_BAD_REQUEST
             );
         }
 

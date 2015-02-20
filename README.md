@@ -52,12 +52,14 @@ class ApiController extends Controller
         $handlerClass = 'App\\Handlers\\' . ucfirst($modelName) . 'Handler';
 
         if (class_exists($handlerClass)) {
+			$url = Request::url();
             $method = Request::method();
             $include = ($i = Request::input('include')) ? explode(',', $i) : $i;
-            $sort = ($i = Request::input('sort')) ? explode(',', $i) : $i;
-	    $filter = ($i = Request::except('sort', 'include')) ? $i : [];
+			$sort = ($i = Request::input('sort')) ? explode(',', $i) : $i;
+			$filter = ($i = Request::except('sort', 'include')) ? $i : [];
+			$content = Request::getContent();
 
-            $request = new ApiRequest($method, $id, $include, $sort, $filter);
+            $request = new ApiRequest($url, $method, $id, $content, $include, $sort, $filter);
             $handler = new $handlerClass($request);
 
             // A handler can throw EchoIt\JsonApi\Exception which must be gracefully handled to give proper response
@@ -66,8 +68,8 @@ class ApiController extends Controller
             } catch (ApiException $e) {
                 return $e->response();
             }
-
-            return $res->toJsonResponse(str_plural($modelName));
+			
+            return $res->toJsonResponse();
         }
 
         // If a handler class does not exist for requested model, it is not considered to be exposed in the API
