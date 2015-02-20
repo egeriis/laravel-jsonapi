@@ -161,5 +161,6 @@ Wishlist
 * [Resource URLs](http://jsonapi.org/format/#document-structure-resource-urls)
 * Requests for multiple [individual resources](http://jsonapi.org/format/#urls-individual-resources), e.g. `/users/1,2,3`
 * [Sparse Fieldsets](http://jsonapi.org/format/#fetching-sparse-fieldsets)
+* [Pagination] (http://jsonapi.org/format/#fetching-pagination)
 
 * Some kind of caching mechanism
