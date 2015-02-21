@@ -1,6 +1,11 @@
 Changelog
 =========
 
+v3.0.1
+------
+
+ 1. Made linked resources include type property
+
 v3.0.0
 ------
 
