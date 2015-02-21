@@ -151,6 +151,11 @@ abstract class Handler
                             continue;
                         }
                     }
+                    
+                    //add type property
+                    $attributes = $obj->getAttributes();
+                    $attributes['type'] = $obj->getTable();
+                    $obj->setRawAttributes($attributes);
 
                     $links->push($obj);
                 }
