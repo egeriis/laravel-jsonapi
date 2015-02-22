@@ -1,6 +1,8 @@
 <?php namespace EchoIt\JsonApi;
 
 use Illuminate\Support\Collection;
+use Illuminate\Pagination\Paginator;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Response as BaseResponse;
 
 /**
@@ -77,10 +79,22 @@ abstract class Handler
                 BaseResponse::HTTP_NOT_FOUND
             );
         }
-
+        
         if ($models instanceof Response) {
             $response = $models;
-        } else {
+        }else if($models instanceof LengthAwarePaginator) {
+            $items = new Collection($models->items());
+            foreach ($items as $model) {
+                $model->load($this->exposedRelationsFromRequest());
+            }
+            
+            $response = new Response($items, static::successfulHttpStatusCode($this->request->method));
+            
+            $response->links = $this->getPaginationLinks($models);
+            $response->linked = $this->getLinkedModels($items);
+            $response->errors = $this->getNonBreakingErrors();
+            
+        } else {            
             if ($models instanceof Collection) {
                 foreach ($models as $model) {
                     $model->load($this->exposedRelationsFromRequest());
@@ -88,6 +102,7 @@ abstract class Handler
             } else {
                 $models->load($this->exposedRelationsFromRequest());
             }
+            
             $response = new Response($models, static::successfulHttpStatusCode($this->request->method));
         
             $response->linked = $this->getLinkedModels($models);
@@ -164,6 +179,29 @@ abstract class Handler
 
         return $links->toArray();
     }
+    
+    /**
+     * Return pagination links as array
+     * @param LengthAwarePaginator $paginator
+     * @return array
+     */
+    protected function getPaginationLinks($paginator) {
+        $links = [];
+        
+        $links['self'] = urldecode($paginator->url($paginator->currentPage()));
+        $links['first'] = urldecode($paginator->url(1));
+        $links['last'] = urldecode($paginator->url($paginator->lastPage()));
+        
+        $links['prev'] = urldecode($paginator->url($paginator->currentPage() - 1));
+        if($links['prev'] === $links['self'] || $links['prev'] === '') {
+            $links['prev'] = null;
+        }
+        $links['next'] = urldecode($paginator->nextPageUrl());
+        if($links['next'] === $links['self'] || $links['next'] === '') {
+            $links['next'] = null;
+        }
+        return $links;
+    }
 
     /**
      * Return errors which did not prevent the API from returning a result set.
@@ -230,6 +268,14 @@ abstract class Handler
      */
     protected static function getModelsForRelation($model, $relationKey)
     {
+        if(!method_exists ( $model, $relationKey )) {
+            throw new Exception(
+                    'Relation "' . $relationKey . '" does not exist in model',
+                    static::ERROR_SCOPE | static::ERROR_UNKNOWN_ID,
+                    BaseResponse::HTTP_INTERNAL_SERVER_ERROR
+                );
+        }
+        
         $relationModels = $model->{$relationKey};
         if (is_null($relationModels)) return null;
 
@@ -275,9 +321,10 @@ abstract class Handler
     protected function handleSortRequest($cols, $model)
     {
         foreach($cols as $col) {
-            if (substr($col, 0, 1) === "+") {
+            $directionSymbol = substr($col, 0, 1);
+            if ($directionSymbol === "+" || substr($col, 0, 3) === '%2B') {
                 $dir = 'asc';
-            } else if (substr($col, 0, 1) === "-") {
+            } else if ($directionSymbol === "-") {
                 $dir = 'desc';
             } else {
                 throw new Exception(
@@ -331,32 +378,83 @@ abstract class Handler
     }
     
     /**
+     * Function to handle pagination requests. 
+     * 
+     * @param  EchoIt\JsonApi\Request $request
+     * @param  EchoIt\JsonApi\Model $model
+     * @param integer $total the total number of records
+     * @return LengthAwarePaginator
+     */
+    protected function handlePaginationRequest($request, $model, $total = null) {
+        $page = $request->pageNumber;
+        $perPage = $request->pageSize;
+        if(!$total) {
+            $total = $model->count();
+        }
+        $results = $model->forPage($page, $perPage)->get(array('*'));
+        $paginator = new LengthAwarePaginator($results, $total, $perPage, $page, [
+            'path' => Paginator::resolveCurrentPath(),
+            'pageName' => 'page[number]'
+        ]);
+        $paginator->appends('page[size]' , $perPage);
+        if (!empty( $request->filter )) {
+            foreach($request->filter as $key=>$value) {
+                $paginator->appends($key , $value);
+            }
+        }
+        if (!empty( $request->sort )) {
+            $paginator->appends('sort' , implode(',', $request->sort));
+        } 
+        
+        return $paginator;
+    }
+    
+    /**
+     * Function to handle filtering requests. 
+     * 
+     * @param  array $filters key=>value pairs of column and value to filter on
+     * @param  EchoIt\JsonApi\Model $model
+     * @return EchoIt\JsonApi\Model
+     */
+    protected function handleFilterRequest($filters, $model) {
+        foreach($filters as $key=>$value) {
+            $model = $model->where($key, '=', $value);
+        }
+        return $model;
+    }
+    
+    /**
      * Default handling of GET request. 
      * Must be called explicitly in handleGet function.
      * 
      * @param  EchoIt\JsonApi\Request $request
      * @param  EchoIt\JsonApi\Model $models
-     * @return EchoIt\JsonApi\Model
+     * @return EchoIt\JsonApi\Model|Illuminate\Pagination\LengthAwarePaginator
      */
     protected function handleGetDefault(Request $request, $model)
     {
-        
+        $total = null;
         if (empty($request->id)) {
             if (!empty( $request->filter )) {
-                foreach($request->filter as $key=>$value) {
-                    $model = $model->where($key, '=', $value);
-                }
+                $model = $this->handleFilterRequest($request->filter, $model);
             }
             if (!empty( $request->sort )) {
+                //if sorting AND paginating, get total count before sorting!
+                if($request->pageNumber) {
+                    $total = $model->count();
+                }
                 $model = $this->handleSortRequest($request->sort, $model);
-            }
-            
+            } 
         } else {
             $model = $model->where('id', '=', $request->id);
         }
         
         try {
-            $results = $model->get();
+            if($request->pageNumber && empty($request->id)) {
+                $results = $this->handlePaginationRequest($request, $model, $total);
+            } else {
+                $results = $model->get();
+            }
         } catch (\Illuminate\Database\QueryException $e) {
             throw new Exception(
                 'Database Request Failed in handleGetDefault',

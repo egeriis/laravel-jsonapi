@@ -34,7 +34,7 @@ In few steps you can expose your models:
     Your controller is responsible to handling input, instantiating a handler class and returning the response.
 
     ```php
-    <?php namespace App\Http\Controllers;
+<?php namespace App\Http\Controllers;
 
 use EchoIt\JsonApi\Request as ApiRequest;
 use EchoIt\JsonApi\ErrorResponse as ApiErrorResponse;
@@ -56,10 +56,21 @@ class ApiController extends Controller
             $method = Request::method();
             $include = ($i = Request::input('include')) ? explode(',', $i) : $i;
 			$sort = ($i = Request::input('sort')) ? explode(',', $i) : $i;
-			$filter = ($i = Request::except('sort', 'include')) ? $i : [];
+			$filter = ($i = Request::except('sort', 'include', 'page')) ? $i : [];
 			$content = Request::getContent();
-
-            $request = new ApiRequest($url, $method, $id, $content, $include, $sort, $filter);
+			
+			$page = Request::input('page');
+			$pageSize = null;
+			$pageNumber = null;
+			if($page) {
+				if(is_array($page) && !empty($page['size']) && !empty($page['number'])) {
+					$pageSize = $page['size'];
+					$pageNumber = $page['number'];
+				} else {
+					 return new ApiErrorResponse(400, 400, 'Expected page[size] and page[number]');
+				}
+			}
+            $request = new ApiRequest(Request::url(), $method, $id, $content, $include, $sort, $filter, $pageNumber, $pageSize);
             $handler = new $handlerClass($request);
 
             // A handler can throw EchoIt\JsonApi\Exception which must be gracefully handled to give proper response
@@ -141,7 +152,8 @@ class UsersHandler extends ApiHandler
 
     > **Note:** Extend your model from `EchoIt\JsonApi\Model` rather than `Eloquent` to get the proper response for linked resources.
 
-
+The features in the Handler class are each in their own functions, so you can easily override them with your own behavior if necessary. 
+	
 Current features
 -----
 
@@ -153,6 +165,7 @@ According to [jsonapi.org](http://jsonapi.org):
 * [Compound Documents](http://jsonapi.org/format/#document-structure-compound-documents)
 * [Sorting](http://jsonapi.org/format/#fetching-sorting)
 * [Filtering](http://jsonapi.org/format/#fetching-filtering)
+* [Pagination] (http://jsonapi.org/format/#fetching-pagination)
 
 Wishlist
 -----
@@ -161,6 +174,5 @@ Wishlist
 * [Resource URLs](http://jsonapi.org/format/#document-structure-resource-urls)
 * Requests for multiple [individual resources](http://jsonapi.org/format/#urls-individual-resources), e.g. `/users/1,2,3`
 * [Sparse Fieldsets](http://jsonapi.org/format/#fetching-sparse-fieldsets)
-* [Pagination] (http://jsonapi.org/format/#fetching-pagination)
 
 * Some kind of caching mechanism

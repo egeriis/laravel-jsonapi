@@ -1,6 +1,11 @@
 Changelog
 =========
 
+v3.1.0
+------
+
+ 1. Added pagination support
+
 v3.0.1
 ------
 
