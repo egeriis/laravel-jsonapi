@@ -1,6 +1,11 @@
 Changelog
 =========
 
+v3.1.1
+------
+
+ 1. Updated readme and composer.json
+
 v3.1.0
 ------
 

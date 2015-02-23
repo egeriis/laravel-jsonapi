@@ -6,7 +6,20 @@ Make it a breeze to create a [jsonapi.org](http://jsonapi.org/) compliant API wi
 Installation
 -----
 
-Add `echo-it/laravel-jsonapi` to your composer.json dependency list and run `composer update`.
+1. Add the github repo to your composer.json file:
+
+    ```
+    "repositories": [
+            {
+                "type": "vcs",
+                "url": "https://github.com/jpchip/laravel-jsonapi"
+            }
+    ]
+    ```
+
+2. Add `echo-it/laravel-jsonapi` to your composer.json dependency list (version 2.0.0 at the minimum for laravel 5 support)
+
+3. Run `composer update`.
 
 ### Requirements
 
@@ -152,8 +165,6 @@ class UsersHandler extends ApiHandler
 
     > **Note:** Extend your model from `EchoIt\JsonApi\Model` rather than `Eloquent` to get the proper response for linked resources.
 
-The features in the Handler class are each in their own functions, so you can easily override them with your own behavior if necessary. 
-	
 Current features
 -----
 
@@ -166,6 +177,9 @@ According to [jsonapi.org](http://jsonapi.org):
 * [Sorting](http://jsonapi.org/format/#fetching-sorting)
 * [Filtering](http://jsonapi.org/format/#fetching-filtering)
 * [Pagination] (http://jsonapi.org/format/#fetching-pagination)
+
+The features in the Handler class are each in their own function (eg. handlePaginationRequest, handleSortRequest, etc.), so you can easily override them with your own behaviour if desired. 
+	
 
 Wishlist
 -----
