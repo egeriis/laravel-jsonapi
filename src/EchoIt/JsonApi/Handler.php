@@ -328,9 +328,9 @@ abstract class Handler
                 $dir = 'desc';
             } else {
                 throw new Exception(
-                    'Sort direction not specified but is required.',
+                    'Sort direction not specified but is required. Expecting "+" or "-".',
                     static::ERROR_SCOPE | static::ERROR_UNKNOWN_ID,
-                    BaseResponse::HTTP_INTERNAL_SERVER_ERROR
+                    BaseResponse::HTTP_BAD_REQUEST
                 );
             }
             $col = substr($col, 1);
@@ -353,7 +353,7 @@ abstract class Handler
             throw new Exception(
                 'Payload either contains misformed JSON or missing "data" parameter.',
                 static::ERROR_SCOPE | static::ERROR_INVALID_ATTRS,
-                BaseResponse::HTTP_INTERNAL_SERVER_ERROR
+                BaseResponse::HTTP_BAD_REQUEST
             );
         }
         
@@ -362,14 +362,14 @@ abstract class Handler
             throw new Exception(
                 '"type" parameter not set in request.',
                 static::ERROR_SCOPE | static::ERROR_INVALID_ATTRS,
-                BaseResponse::HTTP_INTERNAL_SERVER_ERROR
+                BaseResponse::HTTP_BAD_REQUEST
             );
         }
         if ( $data['type'] !== $type) {
             throw new Exception(
                 '"type" parameter is not valid. Expecting ' . $type,
                 static::ERROR_SCOPE | static::ERROR_INVALID_ATTRS,
-                BaseResponse::HTTP_INTERNAL_SERVER_ERROR
+                BaseResponse::HTTP_CONFLICT
             );
         }
         unset($data['type']);
@@ -457,7 +457,7 @@ abstract class Handler
             }
         } catch (\Illuminate\Database\QueryException $e) {
             throw new Exception(
-                'Database Request Failed in handleGetDefault',
+                'Database Request Failed',
                 static::ERROR_SCOPE | static::ERROR_UNKNOWN_ID,
                 BaseResponse::HTTP_INTERNAL_SERVER_ERROR,
                 array('details' => $e->getMessage())
