@@ -141,29 +141,28 @@ class UsersHandler extends ApiHandler
 	/**
 	 * Handles GET requests. 
 	 * @param EchoIt\JsonApi\Request $request
-	 * @return EchoIt\JsonApi\Model
+	 * @return EchoIt\JsonApi\Model|Illuminate\Support\Collection|EchoIt\JsonApi\Response|Illuminate\Pagination\LengthAwarePaginator
 	 */
 	public function handleGet(ApiRequest $request)
 	{
-		//use default GET functionality, which includes
-		//handling of sorting and filtering. 
+		//you can use the default GET functionality, or override with your own 
 		return $this->handleGetDefault($request, new User);
 	}
 	
 	/**
 	 * Handles PUT requests. 
 	 * @param EchoIt\JsonApi\Request $request
-	 * @return EchoIt\JsonApi\Model
+	 * @return EchoIt\JsonApi\Model|Illuminate\Support\Collection|EchoIt\JsonApi\Response
 	 */
 	public function handlePut(ApiRequest $request)
 	{
-		//use default PUT functionality
+		//you can use the default PUT functionality, or override with your own
 		return $this->handlePutDefault($request, new User);
 	}
 }
     ```
 
-    > **Note:** Extend your model from `EchoIt\JsonApi\Model` rather than `Eloquent` to get the proper response for linked resources.
+    > **Note:** Extend your models from `EchoIt\JsonApi\Model` rather than `Eloquent` to get the proper response for linked resources.
 
 Current features
 -----
