@@ -1,6 +1,13 @@
 Changelog
 =========
 
+v3.1.2
+------
+
+ 1. Updated error response to include HTTP status code
+ 2. Updated phpunit tests
+ 3. Updated HTTP status returned from some exceptions to better match specs.
+
 v3.1.1
 ------
 
