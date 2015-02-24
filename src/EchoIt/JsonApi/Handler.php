@@ -383,7 +383,7 @@ abstract class Handler
      * @param  EchoIt\JsonApi\Request $request
      * @param  EchoIt\JsonApi\Model $model
      * @param integer $total the total number of records
-     * @return LengthAwarePaginator
+     * @return Illuminate\Pagination\LengthAwarePaginator
      */
     protected function handlePaginationRequest($request, $model, $total = null) {
         $page = $request->pageNumber;
@@ -428,7 +428,7 @@ abstract class Handler
      * Must be called explicitly in handleGet function.
      * 
      * @param  EchoIt\JsonApi\Request $request
-     * @param  EchoIt\JsonApi\Model $models
+     * @param  EchoIt\JsonApi\Model $model
      * @return EchoIt\JsonApi\Model|Illuminate\Pagination\LengthAwarePaginator
      */
     protected function handleGetDefault(Request $request, $model)
@@ -471,7 +471,7 @@ abstract class Handler
      * Must be called explicitly in handlePost function.
      * 
      * @param  EchoIt\JsonApi\Request $request
-     * @param  EchoIt\JsonApi\Model $models
+     * @param  EchoIt\JsonApi\Model $model
      * @return EchoIt\JsonApi\Model
      */
     public function handlePostDefault(Request $request, $model)
@@ -496,7 +496,7 @@ abstract class Handler
      * Must be called explicitly in handlePut function.
      * 
      * @param  EchoIt\JsonApi\Request $request
-     * @param  EchoIt\JsonApi\Model $models
+     * @param  EchoIt\JsonApi\Model $model
      * @return EchoIt\JsonApi\Model
      */
     public function handlePutDefault(Request $request, $model)
@@ -532,7 +532,7 @@ abstract class Handler
      * Must be called explicitly in handleDelete function.
      * 
      * @param  EchoIt\JsonApi\Request $request
-     * @param  EchoIt\JsonApi\Model $models
+     * @param  EchoIt\JsonApi\Model $model
      * @return EchoIt\JsonApi\Model
      */
     public function handleDeleteDefault(Request $request, $model)
