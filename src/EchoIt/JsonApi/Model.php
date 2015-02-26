@@ -47,11 +47,11 @@ class Model extends \Eloquent
         $attributes['type'] = $this->getTable();
 
         if ( ! count($relations)) {
-            return $this->attributesToArray();
+            return $attributes;
         }
 
         return array_merge(
-            $this->attributesToArray(),
+            $attributes,
             [ 'links' => $relations ]
         );
     }

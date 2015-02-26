@@ -1,6 +1,13 @@
 Changelog
 =========
 
+v3.1.3
+------
+
+ 1. fixed bug preventing type property from being returned
+
+
+
 v3.1.2
 ------
 
