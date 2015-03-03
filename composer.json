@@ -5,13 +5,18 @@
         {
             "name": "Ronni Egeriis Persson",
             "email": "ronni@egeriis.me"
+        },
+		{
+            "name": "Jared Chapiewsky",
+            "email": "chapiewsky@earthlinginteractive.com"
         }
     ],
     "require": {
         "php": ">=5.4.0",
-        "illuminate/database": "4.2.*",
-        "illuminate/http": "4.2.*",
-        "illuminate/support": "4.2.*"
+        "illuminate/database": "5.0.*",
+        "illuminate/http": "5.0.*",
+        "illuminate/support": "5.0.*",
+		"illuminate/pagination" : "5.0.*"
     },
     "require-dev": {
         "phpunit/phpunit": "4.*"

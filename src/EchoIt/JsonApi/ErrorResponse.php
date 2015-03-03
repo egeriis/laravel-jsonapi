@@ -20,7 +20,7 @@ class ErrorResponse extends JsonResponse
     {
         $data = [
             'errors' => [ array_merge(
-                [ 'code' => $errorCode, 'title' => $errorTitle ],
+                [ 'status' => $httpStatusCode, 'code' => $errorCode, 'title' => $errorTitle ],
                 $additionalAttrs
             ) ]
         ];
