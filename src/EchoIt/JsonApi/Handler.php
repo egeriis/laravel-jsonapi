@@ -61,7 +61,7 @@ abstract class Handler
      */
     public function fulfillRequest()
     {
-        if ( ! $this->supportsMethod($this->request->method)) {
+        if (! $this->supportsMethod($this->request->method)) {
             throw new Exception(
                 'Method not allowed',
                 static::ERROR_SCOPE | static::ERROR_HTTP_METHOD_NOT_ALLOWED,
@@ -82,7 +82,7 @@ abstract class Handler
         
         if ($models instanceof Response) {
             $response = $models;
-        }else if($models instanceof LengthAwarePaginator) {
+        } elseif ($models instanceof LengthAwarePaginator) {
             $items = new Collection($models->items());
             foreach ($items as $model) {
                 $model->load($this->exposedRelationsFromRequest());
@@ -93,8 +93,7 @@ abstract class Handler
             $response->links = $this->getPaginationLinks($models);
             $response->linked = $this->getLinkedModels($items);
             $response->errors = $this->getNonBreakingErrors();
-            
-        } else {            
+        } else {
             if ($models instanceof Collection) {
                 foreach ($models as $model) {
                     $model->load($this->exposedRelationsFromRequest());
@@ -148,16 +147,18 @@ abstract class Handler
             foreach ($this->exposedRelationsFromRequest() as $relationName) {
                 $value = static::getModelsForRelation($model, $relationName);
 
-                if (is_null($value)) continue;
+                if (is_null($value)) {
+                    continue;
+                }
 
                 foreach ($value as $obj) {
                     
                     // Check whether the object is already included in the response on it's ID
                     $duplicate = false;
                     $items = $links->where('id', $obj->getKey());
-                    if(count($items) > 0) {
-                        foreach($items as $item) {
-                            if($item->getTable() === $obj->getTable()) {
+                    if (count($items) > 0) {
+                        foreach ($items as $item) {
+                            if ($item->getTable() === $obj->getTable()) {
                                 $duplicate = true;
                                 break;
                             }
@@ -185,7 +186,8 @@ abstract class Handler
      * @param LengthAwarePaginator $paginator
      * @return array
      */
-    protected function getPaginationLinks($paginator) {
+    protected function getPaginationLinks($paginator)
+    {
         $links = [];
         
         $links['self'] = urldecode($paginator->url($paginator->currentPage()));
@@ -193,11 +195,11 @@ abstract class Handler
         $links['last'] = urldecode($paginator->url($paginator->lastPage()));
         
         $links['prev'] = urldecode($paginator->url($paginator->currentPage() - 1));
-        if($links['prev'] === $links['self'] || $links['prev'] === '') {
+        if ($links['prev'] === $links['self'] || $links['prev'] === '') {
             $links['prev'] = null;
         }
         $links['next'] = urldecode($paginator->nextPageUrl());
-        if($links['next'] === $links['self'] || $links['next'] === '') {
+        if ($links['next'] === $links['self'] || $links['next'] === '') {
             $links['next'] = null;
         }
         return $links;
@@ -268,7 +270,7 @@ abstract class Handler
      */
     protected static function getModelsForRelation($model, $relationKey)
     {
-        if(!method_exists ( $model, $relationKey )) {
+        if (!method_exists($model, $relationKey)) {
             throw new Exception(
                     'Relation "' . $relationKey . '" does not exist in model',
                     static::ERROR_SCOPE | static::ERROR_UNKNOWN_ID,
@@ -277,9 +279,13 @@ abstract class Handler
         }
         
         $relationModels = $model->{$relationKey};
-        if (is_null($relationModels)) return null;
+        if (is_null($relationModels)) {
+            return null;
+        }
 
-        if ( ! $relationModels instanceof Collection) return [ $relationModels ];
+        if (! $relationModels instanceof Collection) {
+            return [ $relationModels ];
+        }
         return $relationModels;
     }
 
@@ -293,7 +299,9 @@ abstract class Handler
      */
     protected static function getCollectionOrCreate(&$array, $key)
     {
-        if (array_key_exists($key, $array)) return $array[$key];
+        if (array_key_exists($key, $array)) {
+            return $array[$key];
+        }
         return ($array[$key] = new Collection);
     }
 
@@ -312,19 +320,19 @@ abstract class Handler
     }
     
     /**
-     * Function to handle sorting requests. 
-     * 
+     * Function to handle sorting requests.
+     *
      * @param  array $cols list of column names to sort on
      * @param  EchoIt\JsonApi\Model $model
      * @return EchoIt\JsonApi\Model
      */
     protected function handleSortRequest($cols, $model)
     {
-        foreach($cols as $col) {
+        foreach ($cols as $col) {
             $directionSymbol = substr($col, 0, 1);
             if ($directionSymbol === "+" || substr($col, 0, 3) === '%2B') {
                 $dir = 'asc';
-            } else if ($directionSymbol === "-") {
+            } elseif ($directionSymbol === "-") {
                 $dir = 'desc';
             } else {
                 throw new Exception(
@@ -341,15 +349,15 @@ abstract class Handler
     
     /**
      * Parses content from request into an array of values.
-     * 
+     *
      * @param  string $content
-     * @param  string $type the type the content is expected to be. 
+     * @param  string $type the type the content is expected to be.
      * @return array
      */
     protected function parseRequestContent($content, $type)
     {
         $content = json_decode($content, true);
-        if ( empty($content['data'])) {
+        if (empty($content['data'])) {
             throw new Exception(
                 'Payload either contains misformed JSON or missing "data" parameter.',
                 static::ERROR_SCOPE | static::ERROR_INVALID_ATTRS,
@@ -358,14 +366,14 @@ abstract class Handler
         }
         
         $data = $content['data'];
-        if ( !isset($data['type'])) {
+        if (!isset($data['type'])) {
             throw new Exception(
                 '"type" parameter not set in request.',
                 static::ERROR_SCOPE | static::ERROR_INVALID_ATTRS,
                 BaseResponse::HTTP_BAD_REQUEST
             );
         }
-        if ( $data['type'] !== $type) {
+        if ($data['type'] !== $type) {
             throw new Exception(
                 '"type" parameter is not valid. Expecting ' . $type,
                 static::ERROR_SCOPE | static::ERROR_INVALID_ATTRS,
@@ -378,17 +386,18 @@ abstract class Handler
     }
     
     /**
-     * Function to handle pagination requests. 
-     * 
+     * Function to handle pagination requests.
+     *
      * @param  EchoIt\JsonApi\Request $request
      * @param  EchoIt\JsonApi\Model $model
      * @param integer $total the total number of records
      * @return Illuminate\Pagination\LengthAwarePaginator
      */
-    protected function handlePaginationRequest($request, $model, $total = null) {
+    protected function handlePaginationRequest($request, $model, $total = null)
+    {
         $page = $request->pageNumber;
         $perPage = $request->pageSize;
-        if(!$total) {
+        if (!$total) {
             $total = $model->count();
         }
         $results = $model->forPage($page, $perPage)->get(array('*'));
@@ -396,37 +405,38 @@ abstract class Handler
             'path' => Paginator::resolveCurrentPath(),
             'pageName' => 'page[number]'
         ]);
-        $paginator->appends('page[size]' , $perPage);
-        if (!empty( $request->filter )) {
-            foreach($request->filter as $key=>$value) {
-                $paginator->appends($key , $value);
+        $paginator->appends('page[size]', $perPage);
+        if (!empty($request->filter)) {
+            foreach ($request->filter as $key=>$value) {
+                $paginator->appends($key, $value);
             }
         }
-        if (!empty( $request->sort )) {
-            $paginator->appends('sort' , implode(',', $request->sort));
-        } 
+        if (!empty($request->sort)) {
+            $paginator->appends('sort', implode(',', $request->sort));
+        }
         
         return $paginator;
     }
     
     /**
-     * Function to handle filtering requests. 
-     * 
+     * Function to handle filtering requests.
+     *
      * @param  array $filters key=>value pairs of column and value to filter on
      * @param  EchoIt\JsonApi\Model $model
      * @return EchoIt\JsonApi\Model
      */
-    protected function handleFilterRequest($filters, $model) {
-        foreach($filters as $key=>$value) {
+    protected function handleFilterRequest($filters, $model)
+    {
+        foreach ($filters as $key=>$value) {
             $model = $model->where($key, '=', $value);
         }
         return $model;
     }
     
     /**
-     * Default handling of GET request. 
+     * Default handling of GET request.
      * Must be called explicitly in handleGet function.
-     * 
+     *
      * @param  EchoIt\JsonApi\Request $request
      * @param  EchoIt\JsonApi\Model $model
      * @return EchoIt\JsonApi\Model|Illuminate\Pagination\LengthAwarePaginator
@@ -435,22 +445,22 @@ abstract class Handler
     {
         $total = null;
         if (empty($request->id)) {
-            if (!empty( $request->filter )) {
+            if (!empty($request->filter)) {
                 $model = $this->handleFilterRequest($request->filter, $model);
             }
-            if (!empty( $request->sort )) {
+            if (!empty($request->sort)) {
                 //if sorting AND paginating, get total count before sorting!
-                if($request->pageNumber) {
+                if ($request->pageNumber) {
                     $total = $model->count();
                 }
                 $model = $this->handleSortRequest($request->sort, $model);
-            } 
+            }
         } else {
             $model = $model->where('id', '=', $request->id);
         }
         
         try {
-            if($request->pageNumber && empty($request->id)) {
+            if ($request->pageNumber && empty($request->id)) {
                 $results = $this->handlePaginationRequest($request, $model, $total);
             } else {
                 $results = $model->get();
@@ -467,20 +477,19 @@ abstract class Handler
     }
     
     /**
-     * Default handling of POST request. 
+     * Default handling of POST request.
      * Must be called explicitly in handlePost function.
-     * 
+     *
      * @param  EchoIt\JsonApi\Request $request
      * @param  EchoIt\JsonApi\Model $model
      * @return EchoIt\JsonApi\Model
      */
     public function handlePostDefault(Request $request, $model)
     {
-
         $values = $this->parseRequestContent($request->content, $model->getTable());
         $model->fill($values);
 
-        if ( !$model->save()) {
+        if (!$model->save()) {
             throw new Exception(
                 'An unknown error occurred',
                 static::ERROR_SCOPE | static::ERROR_UNKNOWN,
@@ -492,9 +501,9 @@ abstract class Handler
     }
     
     /**
-     * Default handling of PUT request. 
+     * Default handling of PUT request.
      * Must be called explicitly in handlePut function.
-     * 
+     *
      * @param  EchoIt\JsonApi\Request $request
      * @param  EchoIt\JsonApi\Model $model
      * @return EchoIt\JsonApi\Model
@@ -512,11 +521,13 @@ abstract class Handler
         $updates = $this->parseRequestContent($request->content, $model->getTable());
         
         $model = $model::find($request->id);
-        if (is_null($model)) return null;
+        if (is_null($model)) {
+            return null;
+        }
 
         $model->fill($updates);
 
-        if ( !$model->save()) {
+        if (!$model->save()) {
             throw new Exception(
                 'An unknown error occurred',
                 static::ERROR_SCOPE | static::ERROR_UNKNOWN,
@@ -528,9 +539,9 @@ abstract class Handler
     }
     
     /**
-     * Default handling of DELETE request. 
+     * Default handling of DELETE request.
      * Must be called explicitly in handleDelete function.
-     * 
+     *
      * @param  EchoIt\JsonApi\Request $request
      * @param  EchoIt\JsonApi\Model $model
      * @return EchoIt\JsonApi\Model
@@ -546,11 +557,12 @@ abstract class Handler
         }
 
         $model = $model::find($request->id);
-        if (is_null($model)) return null;
+        if (is_null($model)) {
+            return null;
+        }
         
         $model->delete();
         
         return $model;
     }
-    
 }

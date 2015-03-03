@@ -28,11 +28,13 @@ class Model extends \Eloquent
     {
         $relations = [];
         foreach ($this->getArrayableRelations() as $relation => $value) {
-            if (in_array($relation, $this->hidden)) continue;
+            if (in_array($relation, $this->hidden)) {
+                continue;
+            }
 
             if ($value instanceof BaseModel) {
                 $relations[$relation] = array('id' => $value->getKey(), 'type' => $value->getTable());
-            } else if ($value instanceof Collection) {
+            } elseif ($value instanceof Collection) {
                 $relation = \str_plural($relation);
                 $items = [];
                 foreach ($value as $item) {
@@ -46,7 +48,7 @@ class Model extends \Eloquent
         $attributes = $this->attributesToArray();
         $attributes['type'] = $this->getTable();
 
-        if ( ! count($relations)) {
+        if (! count($relations)) {
             return $attributes;
         }
 

@@ -64,7 +64,7 @@ class Request
     public $pageNumber;
     
     /**
-     * Specifies the number of results to return per page. Only used if 
+     * Specifies the number of results to return per page. Only used if
      * pagination is requested (ie. pageNumber is not null)
      *
      * @var integer
@@ -73,7 +73,7 @@ class Request
 
     /**
      * Constructor.
-     * 
+     *
      * @param string $url
      * @param string $method
      * @param int    $id
