@@ -28,22 +28,32 @@ class Model extends \Eloquent
     {
         $relations = [];
         foreach ($this->getArrayableRelations() as $relation => $value) {
-            if (in_array($relation, $this->hidden)) continue;
+            if (in_array($relation, $this->hidden)) {
+                continue;
+            }
 
             if ($value instanceof BaseModel) {
-                $relations[$relation] = $value->getKey ();
+                $relations[$relation] = array('id' => $value->getKey(), 'type' => $value->getTable());
             } elseif ($value instanceof Collection) {
                 $relation = \str_plural($relation);
-                $relations[$relation] = array_pluck($value, current($value->modelKeys()));
+                $items = [];
+                foreach ($value as $item) {
+                    $items[] = array('id' => $item->getKey(), 'type' => $item->getTable());
+                }
+                $relations[$relation] = $items;
             }
         }
 
-        if ( ! count($relations)) {
-            return $this->attributesToArray();
+        //add type parameter
+        $attributes = $this->attributesToArray();
+        $attributes['type'] = $this->getTable();
+
+        if (! count($relations)) {
+            return $attributes;
         }
 
         return array_merge(
-            $this->attributesToArray(),
+            $attributes,
             [ 'links' => $relations ]
         );
     }

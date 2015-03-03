@@ -15,7 +15,7 @@ class ErrorResponseTest extends PHPUnit_Framework_TestCase
     public function testResponseBody()
     {
         $res = new ErrorResponse(404, 100, 'An error occurred');
-        $this->assertEquals('{"errors":[{"code":100,"title":"An error occurred"}]}', $res->getContent());
+        $this->assertEquals('{"errors":[{"status":404,"code":100,"title":"An error occurred"}]}', $res->getContent());
     }
 
     public function testResponseWithAdditionalAttrs()
@@ -26,6 +26,6 @@ class ErrorResponseTest extends PHPUnit_Framework_TestCase
                 'file' => 'script.php'
             ]
         ]);
-        $this->assertEquals('{"errors":[{"code":100,"title":"An error occurred","stacktrace":{"line":100,"file":"script.php"}}]}', $res->getContent());
+        $this->assertEquals('{"errors":[{"status":404,"code":100,"title":"An error occurred","stacktrace":{"line":100,"file":"script.php"}}]}', $res->getContent());
     }
 }

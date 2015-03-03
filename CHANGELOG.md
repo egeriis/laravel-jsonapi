@@ -1,6 +1,53 @@
 Changelog
 =========
 
+v3.1.4
+------
+
+ 1. Ran PHP-CS-Fixer on code to update to PSR-2 standards
+
+v3.1.3
+------
+
+ 1. fixed bug preventing type property from being returned
+
+
+v3.1.2
+------
+
+ 1. Updated error response to include HTTP status code
+ 2. Updated phpunit tests
+ 3. Updated HTTP status returned from some exceptions to better match specs.
+
+v3.1.1
+------
+
+ 1. Updated readme and composer.json
+
+v3.1.0
+------
+
+ 1. Added pagination support
+
+v3.0.1
+------
+
+ 1. Made linked resources include type property
+
+v3.0.0
+------
+
+ 1. Updated code and docs for basic support for jsonapi 1.0.0.rc2 specs
+ 2. Updated support for sorting to allow for multiple items and ascending/descending specifications
+ 3. Added validation of POST/PUT data
+
+v2.0.0
+------
+
+ 1. Updated code and docs to support laravel 5.0
+ 2. Added basic support for sorting and filtering
+ 3. Updated POST response to return code 201 as specified in jsonapi specs
+
 v1.1.3
 ------
 

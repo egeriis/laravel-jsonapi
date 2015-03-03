@@ -16,7 +16,7 @@ class HandlerTest extends PHPUnit_Framework_TestCase
 {
     public function testMockInstanceWithNoGETSupport()
     {
-        $req = new Request('GET');
+        $req = new Request('http://www.example.com/', 'GET');
         $stub = $this->getMockForAbstractClass('EchoIt\JsonApi\Handler', [$req]);
 
         $this->setExpectedException('EchoIt\JsonApi\Exception');
@@ -25,7 +25,7 @@ class HandlerTest extends PHPUnit_Framework_TestCase
 
     public function testHandler()
     {
-        $req = new Request('GET');
+        $req = new Request('http://www.example.com/', 'GET');
         $handler = new HandlerWithGETSupport($req);
         $handlerResult = $handler->fulfillRequest();
 
@@ -34,7 +34,7 @@ class HandlerTest extends PHPUnit_Framework_TestCase
 
     public function testHandlerUnsupportedRequest()
     {
-        $req = new Request('PUT');
+        $req = new Request('http://www.example.com/', 'PUT', null);
         $handler = new HandlerWithGETSupport($req);
 
         $this->setExpectedException('EchoIt\JsonApi\Exception');
