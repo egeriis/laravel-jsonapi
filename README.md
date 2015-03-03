@@ -6,20 +6,9 @@ Make it a breeze to create a [jsonapi.org](http://jsonapi.org/) compliant API wi
 Installation
 -----
 
-1. Add the github repo to your composer.json file:
+1. Add `echo-it/laravel-jsonapi` to your composer.json dependency list (version 2.0.0 at the minimum for laravel 5 support)
 
-    ```
-    "repositories": [
-            {
-                "type": "vcs",
-                "url": "https://github.com/jpchip/laravel-jsonapi"
-            }
-    ]
-    ```
-
-2. Add `echo-it/laravel-jsonapi` to your composer.json dependency list (version 2.0.0 at the minimum for laravel 5 support)
-
-3. Run `composer update`.
+2. Run `composer update`.
 
 ### Requirements
 
