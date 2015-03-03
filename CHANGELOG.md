@@ -1,11 +1,15 @@
 Changelog
 =========
 
+v3.1.4
+------
+
+ 1. Ran PHP-CS-Fixer on code to update to PSR-2 standards
+
 v3.1.3
 ------
 
  1. fixed bug preventing type property from being returned
-
 
 
 v3.1.2
