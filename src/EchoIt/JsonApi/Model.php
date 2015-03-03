@@ -32,7 +32,7 @@ class Model extends \Eloquent
 
             if ($value instanceof BaseModel) {
                 $relations[$relation] = $value->getKey ();
-            } else if ($value instanceof Collection) {
+            } elseif ($value instanceof Collection) {
                 $relation = \str_plural($relation);
                 $relations[$relation] = array_pluck($value, current($value->modelKeys()));
             }
