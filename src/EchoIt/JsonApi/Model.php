@@ -19,6 +19,36 @@ class Model extends \Eloquent
     protected $guarded = ['id', 'created_at', 'updated_at'];
 
     /**
+     * Has this model been changed inother ways than those
+     * specified by the request
+     *
+     * Ref: http://jsonapi.org/format/#crud-updating-responses-200
+     *
+     * @var  boolean
+     */
+    protected $changed = false;
+
+    /**
+     * mark this model as changed
+     *
+     * @return  void
+     */
+    public function markChanged($changed = true)
+    {
+        $this->changed = (bool) $changed;
+    }
+
+    /**
+     * has this model been changed
+     *
+     * @return  void
+     */
+    public function isChanged()
+    {
+        return $this->changed;
+    }
+
+    /**
      * Convert the model instance to an array. This method overrides that of
      * Eloquent to prevent relations to be serialize into output array.
      *

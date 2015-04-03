@@ -102,7 +102,23 @@ abstract class Handler
                 $models->load($this->exposedRelationsFromRequest());
             }
 
-            $response = new Response($models, static::successfulHttpStatusCode($this->request->method));
+            // grab the status code fot this successful request
+            $statusCode = static::successfulHttpStatusCode($this->request->method);
+
+            // if we did a put request, we need to ensure that the model wasn't
+            // changed in other ways than those specified by the request
+            //     Ref: http://jsonapi.org/format/#crud-updating-responses-200
+            if ($this->request->method === 'PUT')
+            {
+                // check if the model has been changed
+                if ($models->isChanged())
+                {
+                    // return our response as if there was a GET request
+                    $statusCode = static::successfulHttpStatusCode('GET');
+                }
+            }
+
+            $response = new Response($models, $statusCode);
 
             $response->linked = $this->getLinkedModels($models);
             $response->errors = $this->getNonBreakingErrors();
@@ -525,14 +541,33 @@ abstract class Handler
             return null;
         }
 
+        // fetch the original attributes
+        $originalAttributes = $model->getOriginal();
+
+        // apply our updates
         $model->fill($updates);
 
+        // ensure we can get a succesful save
         if (!$model->save()) {
             throw new Exception(
                 'An unknown error occurred',
                 static::ERROR_SCOPE | static::ERROR_UNKNOWN,
                 BaseResponse::HTTP_INTERNAL_SERVER_ERROR
             );
+        }
+
+        // fetch the current attributes (post save)
+        $newAttributes = $model->getAttributes();
+
+        // loop through the new attributes, and ensure they are identical
+        // to the original ones. if not, then we need to return the model
+        foreach ($newAttributes as $attribute => $value)
+        {
+            if (! array_key_exists($attribute, $originalAttributes) || $value !== $originalAttributes[$attribute])
+            {
+                $model->markChanged();
+                break;
+            }
         }
 
         return $model;
