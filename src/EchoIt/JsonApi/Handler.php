@@ -102,21 +102,7 @@ abstract class Handler
                 $models->load($this->exposedRelationsFromRequest());
             }
 
-            // grab the status code fot this successful request
-            $statusCode = static::successfulHttpStatusCode($this->request->method);
-
-            // if we did a put request, we need to ensure that the model wasn't
-            // changed in other ways than those specified by the request
-            //     Ref: http://jsonapi.org/format/#crud-updating-responses-200
-            if ($this->request->method === 'PUT') {
-                // check if the model has been changed
-                if ($models->isChanged()) {
-                    // return our response as if there was a GET request
-                    $statusCode = static::successfulHttpStatusCode('GET');
-                }
-            }
-
-            $response = new Response($models, $statusCode);
+            $response = new Response($models, static::successfulHttpStatusCode($this->request->method, $models));
 
             $response->linked = $this->getLinkedModels($models);
             $response->errors = $this->getNonBreakingErrors();
@@ -244,12 +230,23 @@ abstract class Handler
      * A method for getting the proper HTTP status code for a successful request
      *
      * @param  string $method "PUT", "POST", "DELETE" or "GET"
+     * @param  Model|null $model The model that a PUT request was executed against
      * @return int
      */
-    public static function successfulHttpStatusCode($method)
+    public static function successfulHttpStatusCode($method, $model = null)
     {
-        switch ($method) {
+        // if we did a put request, we need to ensure that the model wasn't
+        // changed in other ways than those specified by the request
+        //     Ref: http://jsonapi.org/format/#crud-updating-responses-200
+        if ($method === 'PUT' && $model instanceof Model) {
+            // check if the model has been changed
+            if ($model->isChanged()) {
+                // return our response as if there was a GET request
+                $method = 'GET';
+            }
+        }
 
+        switch ($method) {
             case 'POST':
                 return BaseResponse::HTTP_CREATED;
             case 'PUT':
