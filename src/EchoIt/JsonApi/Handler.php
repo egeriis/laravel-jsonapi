@@ -108,11 +108,9 @@ abstract class Handler
             // if we did a put request, we need to ensure that the model wasn't
             // changed in other ways than those specified by the request
             //     Ref: http://jsonapi.org/format/#crud-updating-responses-200
-            if ($this->request->method === 'PUT')
-            {
+            if ($this->request->method === 'PUT') {
                 // check if the model has been changed
-                if ($models->isChanged())
-                {
+                if ($models->isChanged()) {
                     // return our response as if there was a GET request
                     $statusCode = static::successfulHttpStatusCode('GET');
                 }
@@ -561,10 +559,8 @@ abstract class Handler
 
         // loop through the new attributes, and ensure they are identical
         // to the original ones. if not, then we need to return the model
-        foreach ($newAttributes as $attribute => $value)
-        {
-            if (! array_key_exists($attribute, $originalAttributes) || $value !== $originalAttributes[$attribute])
-            {
+        foreach ($newAttributes as $attribute => $value) {
+            if (! array_key_exists($attribute, $originalAttributes) || $value !== $originalAttributes[$attribute]) {
                 $model->markChanged();
                 break;
             }
