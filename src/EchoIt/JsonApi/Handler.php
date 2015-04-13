@@ -158,7 +158,7 @@ abstract class Handler
                     $items = $links->where('id', $obj->getKey());
                     if (count($items) > 0) {
                         foreach ($items as $item) {
-                            if ($item->getTable() === $obj->getTable()) {
+                            if ($item->getResourceType() === $obj->getResourceType()) {
                                 $duplicate = true;
                                 break;
                             }
@@ -170,7 +170,7 @@ abstract class Handler
 
                     //add type property
                     $attributes = $obj->getAttributes();
-                    $attributes['type'] = $obj->getTable();
+                    $attributes['type'] = $obj->getResourceType();
                     $obj->setRawAttributes($attributes);
 
                     $links->push($obj);
@@ -497,7 +497,7 @@ abstract class Handler
      */
     public function handlePostDefault(Request $request, $model)
     {
-        $values = $this->parseRequestContent($request->content, $model->getTable());
+        $values = $this->parseRequestContent($request->content, $model->getResourceType());
         $model->fill($values);
 
         if (!$model->save()) {

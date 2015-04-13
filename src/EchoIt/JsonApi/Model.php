@@ -29,6 +29,14 @@ class Model extends \Eloquent
     protected $changed = false;
 
     /**
+     * The resource type. If null, when the model is rendered,
+     * the table name will be used
+     *
+     * @var  null|string
+     */
+    protected $resourceType = null;
+
+    /**
      * mark this model as changed
      *
      * @return  void
@@ -49,6 +57,17 @@ class Model extends \Eloquent
     }
 
     /**
+     * Get the resource type of the model
+     *
+     * @return  string
+     */
+    public function getResourceType()
+    {
+        // return the resource type if it is not null; table otherwize
+        return ($this->resourceType ?: $this->getTable());
+    }
+
+    /**
      * Convert the model instance to an array. This method overrides that of
      * Eloquent to prevent relations to be serialize into output array.
      *
@@ -63,12 +82,12 @@ class Model extends \Eloquent
             }
 
             if ($value instanceof BaseModel) {
-                $relations[$relation] = array('id' => $value->getKey(), 'type' => $value->getTable());
+                $relations[$relation] = array('id' => $value->getKey(), 'type' => $value->getResourceType());
             } elseif ($value instanceof Collection) {
                 $relation = \str_plural($relation);
                 $items = [];
                 foreach ($value as $item) {
-                    $items[] = array('id' => $item->getKey(), 'type' => $item->getTable());
+                    $items[] = array('id' => $item->getKey(), 'type' => $item->getResourceType());
                 }
                 $relations[$relation] = $items;
             }
@@ -76,7 +95,7 @@ class Model extends \Eloquent
 
         //add type parameter
         $attributes = $this->attributesToArray();
-        $attributes['type'] = $this->getTable();
+        $attributes['type'] = $this->getResourceType();
 
         if (! count($relations)) {
             return $attributes;
