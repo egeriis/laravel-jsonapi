@@ -79,7 +79,7 @@ abstract class Handler
                 BaseResponse::HTTP_NOT_FOUND
             );
         }
-        
+
         if ($models instanceof Response) {
             $response = $models;
         } elseif ($models instanceof LengthAwarePaginator) {
@@ -87,9 +87,9 @@ abstract class Handler
             foreach ($items as $model) {
                 $model->load($this->exposedRelationsFromRequest());
             }
-            
+
             $response = new Response($items, static::successfulHttpStatusCode($this->request->method));
-            
+
             $response->links = $this->getPaginationLinks($models);
             $response->linked = $this->getLinkedModels($items);
             $response->errors = $this->getNonBreakingErrors();
@@ -101,9 +101,9 @@ abstract class Handler
             } else {
                 $models->load($this->exposedRelationsFromRequest());
             }
-            
-            $response = new Response($models, static::successfulHttpStatusCode($this->request->method));
-        
+
+            $response = new Response($models, static::successfulHttpStatusCode($this->request->method, $models));
+
             $response->linked = $this->getLinkedModels($models);
             $response->errors = $this->getNonBreakingErrors();
         }
@@ -152,7 +152,7 @@ abstract class Handler
                 }
 
                 foreach ($value as $obj) {
-                    
+
                     // Check whether the object is already included in the response on it's ID
                     $duplicate = false;
                     $items = $links->where('id', $obj->getKey());
@@ -167,7 +167,7 @@ abstract class Handler
                             continue;
                         }
                     }
-                    
+
                     //add type property
                     $attributes = $obj->getAttributes();
                     $attributes['type'] = $obj->getTable();
@@ -180,7 +180,7 @@ abstract class Handler
 
         return $links->toArray();
     }
-    
+
     /**
      * Return pagination links as array
      * @param LengthAwarePaginator $paginator
@@ -189,11 +189,11 @@ abstract class Handler
     protected function getPaginationLinks($paginator)
     {
         $links = [];
-        
+
         $links['self'] = urldecode($paginator->url($paginator->currentPage()));
         $links['first'] = urldecode($paginator->url(1));
         $links['last'] = urldecode($paginator->url($paginator->lastPage()));
-        
+
         $links['prev'] = urldecode($paginator->url($paginator->currentPage() - 1));
         if ($links['prev'] === $links['self'] || $links['prev'] === '') {
             $links['prev'] = null;
@@ -230,12 +230,23 @@ abstract class Handler
      * A method for getting the proper HTTP status code for a successful request
      *
      * @param  string $method "PUT", "POST", "DELETE" or "GET"
+     * @param  Model|null $model The model that a PUT request was executed against
      * @return int
      */
-    public static function successfulHttpStatusCode($method)
+    public static function successfulHttpStatusCode($method, $model = null)
     {
+        // if we did a put request, we need to ensure that the model wasn't
+        // changed in other ways than those specified by the request
+        //     Ref: http://jsonapi.org/format/#crud-updating-responses-200
+        if ($method === 'PUT' && $model instanceof Model) {
+            // check if the model has been changed
+            if ($model->isChanged()) {
+                // return our response as if there was a GET request
+                $method = 'GET';
+            }
+        }
+
         switch ($method) {
-            
             case 'POST':
                 return BaseResponse::HTTP_CREATED;
             case 'PUT':
@@ -277,7 +288,7 @@ abstract class Handler
                     BaseResponse::HTTP_INTERNAL_SERVER_ERROR
                 );
         }
-        
+
         $relationModels = $model->{$relationKey};
         if (is_null($relationModels)) {
             return null;
@@ -318,7 +329,7 @@ abstract class Handler
     {
         return \str_plural($relationName);
     }
-    
+
     /**
      * Function to handle sorting requests.
      *
@@ -346,7 +357,7 @@ abstract class Handler
         }
         return $model;
     }
-    
+
     /**
      * Parses content from request into an array of values.
      *
@@ -364,7 +375,7 @@ abstract class Handler
                 BaseResponse::HTTP_BAD_REQUEST
             );
         }
-        
+
         $data = $content['data'];
         if (!isset($data['type'])) {
             throw new Exception(
@@ -381,10 +392,10 @@ abstract class Handler
             );
         }
         unset($data['type']);
-        
+
         return $data;
     }
-    
+
     /**
      * Function to handle pagination requests.
      *
@@ -414,10 +425,10 @@ abstract class Handler
         if (!empty($request->sort)) {
             $paginator->appends('sort', implode(',', $request->sort));
         }
-        
+
         return $paginator;
     }
-    
+
     /**
      * Function to handle filtering requests.
      *
@@ -432,7 +443,7 @@ abstract class Handler
         }
         return $model;
     }
-    
+
     /**
      * Default handling of GET request.
      * Must be called explicitly in handleGet function.
@@ -458,7 +469,7 @@ abstract class Handler
         } else {
             $model = $model->where('id', '=', $request->id);
         }
-        
+
         try {
             if ($request->pageNumber && empty($request->id)) {
                 $results = $this->handlePaginationRequest($request, $model, $total);
@@ -475,7 +486,7 @@ abstract class Handler
         }
         return $results;
     }
-    
+
     /**
      * Default handling of POST request.
      * Must be called explicitly in handlePost function.
@@ -496,10 +507,10 @@ abstract class Handler
                 BaseResponse::HTTP_INTERNAL_SERVER_ERROR
             );
         }
-        
+
         return $model;
     }
-    
+
     /**
      * Default handling of PUT request.
      * Must be called explicitly in handlePut function.
@@ -519,14 +530,19 @@ abstract class Handler
         }
 
         $updates = $this->parseRequestContent($request->content, $model->getTable());
-        
+
         $model = $model::find($request->id);
         if (is_null($model)) {
             return null;
         }
 
+        // fetch the original attributes
+        $originalAttributes = $model->getOriginal();
+
+        // apply our updates
         $model->fill($updates);
 
+        // ensure we can get a succesful save
         if (!$model->save()) {
             throw new Exception(
                 'An unknown error occurred',
@@ -534,10 +550,22 @@ abstract class Handler
                 BaseResponse::HTTP_INTERNAL_SERVER_ERROR
             );
         }
-        
+
+        // fetch the current attributes (post save)
+        $newAttributes = $model->getAttributes();
+
+        // loop through the new attributes, and ensure they are identical
+        // to the original ones. if not, then we need to return the model
+        foreach ($newAttributes as $attribute => $value) {
+            if (! array_key_exists($attribute, $originalAttributes) || $value !== $originalAttributes[$attribute]) {
+                $model->markChanged();
+                break;
+            }
+        }
+
         return $model;
     }
-    
+
     /**
      * Default handling of DELETE request.
      * Must be called explicitly in handleDelete function.
@@ -560,9 +588,9 @@ abstract class Handler
         if (is_null($model)) {
             return null;
         }
-        
+
         $model->delete();
-        
+
         return $model;
     }
 }

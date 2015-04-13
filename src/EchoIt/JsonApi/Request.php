@@ -7,14 +7,14 @@
  */
 class Request
 {
-    
+
     /**
      * Contains the url of the request
      *
      * @var string
      */
     public $url;
-    
+
     /**
      * Contains the HTTP method of the request
      *
@@ -28,41 +28,41 @@ class Request
      * @var int
      */
     public $id;
-    
+
     /**
      * Contains any content in request
      *
      * @var string
      */
     public $content;
-    
+
     /**
      * Contains an array of linked resource collections to load
      *
      * @var array
      */
     public $include;
-    
+
     /**
      * Contains an array of column names to sort on
      *
      * @var array
      */
     public $sort;
-    
+
     /**
      * Contains an array of key/value pairs to filter on
      *
      * @var array
      */
     public $filter;
-    
+
     /**
      * Specifies the page number to return results for
      * @var integer
      */
     public $pageNumber;
-    
+
     /**
      * Specifies the number of results to return per page. Only used if
      * pagination is requested (ie. pageNumber is not null)
@@ -93,7 +93,7 @@ class Request
         $this->include = $include ?: [];
         $this->sort = $sort ?: [];
         $this->filter = $filter ?: [];
-        
+
         $this->pageNumber = $pageNumber ?: null;
         if ($pageSize) {
             $this->pageSize = $pageSize;
