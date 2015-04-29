@@ -91,7 +91,7 @@ abstract class Handler
             $response = new Response($items, static::successfulHttpStatusCode($this->request->method));
 
             $response->links = $this->getPaginationLinks($models);
-            $response->linked = $this->getLinkedModels($items);
+            $response->included = $this->getIncludedModels($items);
             $response->errors = $this->getNonBreakingErrors();
         } else {
             if ($models instanceof Collection) {
@@ -104,7 +104,7 @@ abstract class Handler
 
             $response = new Response($models, static::successfulHttpStatusCode($this->request->method, $models));
 
-            $response->linked = $this->getLinkedModels($models);
+            $response->included = $this->getIncludedModels($models);
             $response->errors = $this->getNonBreakingErrors();
         }
 
@@ -112,7 +112,7 @@ abstract class Handler
     }
 
     /**
-     * Returns which requested linked resources are available.
+     * Returns which requested resources are available to include.
      *
      * @return array
      */
@@ -122,7 +122,7 @@ abstract class Handler
     }
 
     /**
-     * Returns which of the requested linked resources are not available.
+     * Returns which of the requested resources are not available to include.
      *
      * @return array
      */
@@ -132,14 +132,14 @@ abstract class Handler
     }
 
     /**
-     * Iterate through result set to fetch the requested linked resources.
+     * Iterate through result set to fetch the requested resources to include.
      *
      * @param  Illuminate\Database\Eloquent\Collection|JsonApi\Model $models
      * @return array
      */
-    protected function getLinkedModels($models)
+    protected function getIncludedModels($models)
     {
-        $linked = [];
+        $included = [];
         $links = new Collection();
         $models = $models instanceof Collection ? $models : [$models];
 
@@ -218,8 +218,8 @@ abstract class Handler
         if (count($unknownRelations) > 0) {
             $errors[] = [
                 'code' => static::ERROR_UNKNOWN_LINKED_RESOURCES,
-                'title' => 'Unknown linked resources requested',
-                'description' => 'These linked resources are not available: ' . implode(', ', $unknownRelations)
+                'title' => 'Unknown included resource requested',
+                'description' => 'These included resources are not available: ' . implode(', ', $unknownRelations)
             ];
         }
 
@@ -318,7 +318,7 @@ abstract class Handler
 
     /**
      * The return value of this method will be used as the key to store the
-     * linked model from a relationship. Per default it will return the plural
+     * linked or included model from a relationship. Per default it will return the plural
      * version of the relation name.
      * Override this method to map a relation name to a different key.
      *
