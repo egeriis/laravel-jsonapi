@@ -82,12 +82,12 @@ class Model extends \Eloquent
             }
 
             if ($value instanceof BaseModel) {
-                $relations[$relation] = array('id' => $value->getKey(), 'type' => $value->getResourceType());
+                $relations[$relation] = array('linkage' => array('id' => $value->getKey(), 'type' => $value->getResourceType()));
             } elseif ($value instanceof Collection) {
                 $relation = \str_plural($relation);
-                $items = [];
+                $items = ['linkage' => []];
                 foreach ($value as $item) {
-                    $items[] = array('id' => $item->getKey(), 'type' => $item->getResourceType());
+                    $items['linkage'][] = array('id' => $item->getKey(), 'type' => $item->getResourceType());
                 }
                 $relations[$relation] = $items;
             }
