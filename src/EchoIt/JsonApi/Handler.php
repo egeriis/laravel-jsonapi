@@ -529,7 +529,7 @@ abstract class Handler
             );
         }
 
-        $updates = $this->parseRequestContent($request->content, $model->getTable());
+        $updates = $this->parseRequestContent($request->content, $model->getResourceType());
 
         $model = $model::find($request->id);
         if (is_null($model)) {
