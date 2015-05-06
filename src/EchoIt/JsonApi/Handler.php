@@ -139,7 +139,6 @@ abstract class Handler
      */
     protected function getIncludedModels($models)
     {
-        $included = [];
         $links = new Collection();
         $models = $models instanceof Collection ? $models : [$models];
 
