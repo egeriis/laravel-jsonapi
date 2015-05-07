@@ -37,6 +37,14 @@ class Model extends \Eloquent
     protected $resourceType = null;
 
     /**
+     * Expose the resource relations links by default when viewing a
+     * resource
+     *
+     * @var  array
+     */
+    protected $exposedRelations = [];
+
+    /**
      * mark this model as changed
      *
      * @return  void
@@ -76,6 +84,12 @@ class Model extends \Eloquent
     public function toArray()
     {
         $relations = [];
+
+        // include any relations exposed by default
+       foreach ($this->exposedRelations as $relation) {
+            $this->load($relation);
+        }
+
         foreach ($this->getArrayableRelations() as $relation => $value) {
             if (in_array($relation, $this->hidden)) {
                 continue;
