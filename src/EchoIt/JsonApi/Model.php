@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model as BaseModel;
+use Illuminate\Database\Eloquent\Relations\Pivot as Pivot;
 
 /**
  * This class is used to extend models from, that will be exposed through
@@ -78,6 +79,10 @@ class Model extends \Eloquent
         $relations = [];
         foreach ($this->getArrayableRelations() as $relation => $value) {
             if (in_array($relation, $this->hidden)) {
+                continue;
+            }
+
+            if ($value instanceof Pivot) {
                 continue;
             }
 
