@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model as BaseModel;
+use Illuminate\Database\Eloquent\Relations\Pivot as Pivot;
 
 /**
  * This class is used to extend models from, that will be exposed through
@@ -35,6 +36,14 @@ class Model extends \Eloquent
      * @var  null|string
      */
     protected $resourceType = null;
+
+    /**
+     * Expose the resource relations links by default when viewing a
+     * resource
+     *
+     * @var  array
+     */
+    protected $exposedRelations = [];
 
     /**
      * mark this model as changed
@@ -76,8 +85,18 @@ class Model extends \Eloquent
     public function toArray()
     {
         $relations = [];
+
+        // include any relations exposed by default
+       foreach ($this->exposedRelations as $relation) {
+            $this->load($relation);
+        }
+
         foreach ($this->getArrayableRelations() as $relation => $value) {
             if (in_array($relation, $this->hidden)) {
+                continue;
+            }
+
+            if ($value instanceof Pivot) {
                 continue;
             }
 
