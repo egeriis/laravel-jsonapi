@@ -527,6 +527,33 @@ abstract class Handler
     }
 
     /**
+     * Validates passed data against a model
+     * Validation performed safely and only if model provides rules
+     *
+     * @param  EchoIt\JsonApi\Model $model  model to validate against
+     * @param  Array                $values passed array of values
+     *
+     * @throws Exception\Validation         Exception thrown when validation fails
+     *
+     * @return Bool                         true if validation successful
+     */
+    protected function validateModelData(Model $model, Array $values)
+    {
+        $validationResponse = $model->validateArray($values);
+
+        if ($validationResponse === true) {
+            return true;
+        }
+
+        throw new Exception\Validation(
+            'Bad Request',
+            static::ERROR_SCOPE | static::ERROR_HTTP_METHOD_NOT_ALLOWED,
+            BaseResponse::HTTP_BAD_REQUEST,
+            $validationResponse
+        );
+    }
+
+    /**
      * Default handling of POST request.
      * Must be called explicitly in handlePost function.
      *
@@ -537,6 +564,8 @@ abstract class Handler
     public function handlePostDefault(Request $request, $model)
     {
         $values = $this->parseRequestContent($request->content, $model->getResourceType());
+        $this->validateModelData($model, $values);
+
         $model->fill($values);
 
         if (!$model->save()) {
