@@ -127,7 +127,7 @@ class Model extends \Eloquent
      *
      * @param  Array  $values  user passed values (request data)
      *
-     * @return true|Illuminate\Support\MessageBag  True on pass, MessageBag of errors on fail
+     * @return bool|Illuminate\Support\MessageBag  True on pass, MessageBag of errors on fail
      */
     public function validateArray(Array $values)
     {

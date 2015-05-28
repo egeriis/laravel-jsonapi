@@ -22,14 +22,16 @@ class MultiErrorResponse extends JsonResponse
     {
         $data = [ 'errors' => [] ];
 
-        foreach ($errors->keys() as $field) {
+        if ($errors) {
+            foreach ($errors->keys() as $field) {
 
-            foreach ($errors->get($field) as $message) {
+                foreach ($errors->get($field) as $message) {
 
-                $data['errors'][] = [ 'status' => $httpStatusCode, 'code' => $errorCode, 'title' =>  'Validation Fail', 'detail' => $message, 'meta' => ['field' => $field] ];
+                    $data['errors'][] = [ 'status' => $httpStatusCode, 'code' => $errorCode, 'title' =>  'Validation Fail', 'detail' => $message, 'meta' => ['field' => $field] ];
+
+                }
 
             }
-
         }
 
         parent::__construct($data, $httpStatusCode);

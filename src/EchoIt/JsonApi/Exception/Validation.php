@@ -20,7 +20,7 @@ class Validation extends Exception
      * @param string                        $message        The Exception message to throw
      * @param int                           $code           The Exception code
      * @param int                           $httpStatusCode HTTP status code which can be used for broken request
-     * @param Illuminate\Support\MessageBag $errors         Validation errors
+     * @param Illuminate\Support\MessageBag $messages       Validation errors
      */
     public function __construct($message = '', $code = 0, $httpStatusCode = 500, ValidationMessages $messages = NULL)
     {
@@ -33,7 +33,7 @@ class Validation extends Exception
     /**
      * This method returns a HTTP response representation of the Exception
      *
-     * @return JsonApi\ErrorResponse
+     * @return JsonApi\MultiErrorResponse
      */
     public function response()
     {
