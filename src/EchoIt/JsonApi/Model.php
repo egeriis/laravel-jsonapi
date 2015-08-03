@@ -1,5 +1,6 @@
 <?php namespace EchoIt\JsonApi;
 
+use Validator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model as BaseModel;
 use Illuminate\Database\Eloquent\Relations\Pivot as Pivot;
@@ -119,6 +120,37 @@ class Model extends \Eloquent
     {
         // return the resource type if it is not null; table otherwize
         return ($this->resourceType ?: $this->getTable());
+    }
+
+    /**
+     * Validate passed values
+     *
+     * @param  Array  $values  user passed values (request data)
+     *
+     * @return bool|Illuminate\Support\MessageBag  True on pass, MessageBag of errors on fail
+     */
+    public function validateArray(Array $values)
+    {
+        if (count($this->getValidationRules())) {
+            $validator = Validator::make($values, $this->getValidationRules());
+
+            if ($validator->fails()) {
+                return $validator->errors();
+            }
+        }
+
+        return True;
+    }
+
+    /**
+     * Return model validation rules
+     * Models should overload this to provide their validation rules
+     *
+     * @return Array validation rules
+     */
+    public function getValidationRules()
+    {
+        return [];
     }
 
     /**
