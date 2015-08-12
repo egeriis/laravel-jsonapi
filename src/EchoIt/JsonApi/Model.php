@@ -34,7 +34,7 @@ class Model extends \Eloquent
                 $relations[$relation] = $value->getKey ();
             } elseif ($value instanceof Collection) {
                 $relation = \str_plural($relation);
-                $relations[$relation] = array_pluck($value, current($value->modelKeys()));
+                $relations[$relation] = $value->modelKeys();
             }
         }
 
