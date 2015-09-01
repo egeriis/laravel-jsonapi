@@ -29,16 +29,33 @@ class Request
     public $include;
 
     /**
+     * Requested offset
+     *
+     * @var int
+     */
+    public $offset;
+
+    /**
+     * Requested limit of entities returned
+     *
+     * @var int
+     */
+    public $limit;
+
+
+    /**
      * Constructor.
      *
      * @param string $method
      * @param int    $id
      * @param array  $include
      */
-    public function __construct($method, $id = null, $include = [])
+    public function __construct($method, $id = null, $include = [], $offset = 0, $limit = 0)
     {
         $this->method = $method;
         $this->id = $id;
         $this->include = $include ?: [];
+        $this->offset = $offset;
+        $this->limit = $limit;
     }
 }
