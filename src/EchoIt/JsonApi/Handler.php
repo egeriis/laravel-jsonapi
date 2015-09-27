@@ -85,7 +85,7 @@ abstract class Handler
         } elseif ($models instanceof LengthAwarePaginator) {
             $items = new Collection($models->items());
             foreach ($items as $model) {
-                $model->load($this->exposedRelationsFromRequest());
+                $this->loadRelatedModels($model);
             }
 
             $response = new Response($items, static::successfulHttpStatusCode($this->request->method));
@@ -96,10 +96,10 @@ abstract class Handler
         } else {
             if ($models instanceof Collection) {
                 foreach ($models as $model) {
-                    $model->load($this->exposedRelationsFromRequest());
+                    $this->loadRelatedModels($model);
                 }
             } else {
-                $models->load($this->exposedRelationsFromRequest());
+                $this->loadRelatedModels($models);
             }
 
             $response = new Response($models, static::successfulHttpStatusCode($this->request->method, $models));
@@ -112,13 +112,53 @@ abstract class Handler
     }
 
     /**
+     * Load a model's relations
+     *
+     * @param   Model  $model  the model to load relations of
+     * @return  void
+     */
+    protected function loadRelatedModels(Model $model) {
+        // get the relations to load
+        $relations = $this->exposedRelationsFromRequest($model);
+
+        foreach ($relations as $relation) {
+            // if this relation is loaded via a method, then call said method
+            if (in_array($relation, $model->relationsFromMethod())) {
+                $model->$relation = $model->$relation();
+                continue;
+            }
+
+            $model->load($relation);
+        }
+    }
+
+    /**
      * Returns which requested resources are available to include.
      *
      * @return array
      */
-    protected function exposedRelationsFromRequest()
+    protected function exposedRelationsFromRequest($model = null)
     {
-        return array_intersect(static::$exposedRelations, $this->request->include);
+        $exposedRelations = static::$exposedRelations;
+
+        // if no relations are to be included by request
+        if (count($this->request->include) == 0) {
+            // and if we have a model
+            if ($model !== null && $model instanceof Model) {
+                // then use the relations exposed by default
+                $exposedRelations = array_intersect($exposedRelations, $model->defaultExposedRelations());
+                $model->setExposedRelations($exposedRelations);
+                return $exposedRelations;
+            }
+
+        }
+
+        $exposedRelations = array_intersect($exposedRelations, $this->request->include);
+        if ($model !== null && $model instanceof Model) {
+            $model->setExposedRelations($exposedRelations);
+        }
+
+        return $exposedRelations;
     }
 
     /**
@@ -143,7 +183,7 @@ abstract class Handler
         $models = $models instanceof Collection ? $models : [$models];
 
         foreach ($models as $model) {
-            foreach ($this->exposedRelationsFromRequest() as $relationName) {
+            foreach ($this->exposedRelationsFromRequest($model) as $relationName) {
                 $value = static::getModelsForRelation($model, $relationName);
 
                 if (is_null($value)) {
@@ -287,7 +327,6 @@ abstract class Handler
                     BaseResponse::HTTP_INTERNAL_SERVER_ERROR
                 );
         }
-
         $relationModels = $model->{$relationKey};
         if (is_null($relationModels)) {
             return null;
@@ -296,6 +335,7 @@ abstract class Handler
         if (! $relationModels instanceof Collection) {
             return [ $relationModels ];
         }
+
         return $relationModels;
     }
 
@@ -487,6 +527,33 @@ abstract class Handler
     }
 
     /**
+     * Validates passed data against a model
+     * Validation performed safely and only if model provides rules
+     *
+     * @param  EchoIt\JsonApi\Model $model  model to validate against
+     * @param  Array                $values passed array of values
+     *
+     * @throws Exception\Validation         Exception thrown when validation fails
+     *
+     * @return Bool                         true if validation successful
+     */
+    protected function validateModelData(Model $model, Array $values)
+    {
+        $validationResponse = $model->validateArray($values);
+
+        if ($validationResponse === true) {
+            return true;
+        }
+
+        throw new Exception\Validation(
+            'Bad Request',
+            static::ERROR_SCOPE | static::ERROR_HTTP_METHOD_NOT_ALLOWED,
+            BaseResponse::HTTP_BAD_REQUEST,
+            $validationResponse
+        );
+    }
+
+    /**
      * Default handling of POST request.
      * Must be called explicitly in handlePost function.
      *
@@ -497,6 +564,8 @@ abstract class Handler
     public function handlePostDefault(Request $request, $model)
     {
         $values = $this->parseRequestContent($request->content, $model->getResourceType());
+        $this->validateModelData($model, $values);
+
         $model->fill($values);
 
         if (!$model->save()) {
