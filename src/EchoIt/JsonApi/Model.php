@@ -210,9 +210,15 @@ class Model extends \Eloquent
             }
         }
 
-        // add type parameter
-        $attributes = $this->attributesToArray();
-        $attributes['type'] = $this->getResourceType();
+        //add type parameter
+        $model_attributes = $this->attributesToArray();
+        unset($model_attributes[$this->primaryKey]);
+
+        $attributes = [
+            'id'         => $this->getKey(),
+            'type'       => $this->getResourceType(),
+            'attributes' => $model_attributes
+        ];
 
         if (! count($relations)) {
             return $attributes;
