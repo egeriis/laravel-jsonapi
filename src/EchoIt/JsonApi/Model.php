@@ -94,7 +94,7 @@ class Model extends \Eloquent
     /**
      * mark this model as changed
      *
-     * @return  void
+     * @return  bool
      */
     public function markChanged($changed = true)
     {
@@ -104,7 +104,7 @@ class Model extends \Eloquent
     /**
      * has this model been changed
      *
-     * @return  void
+     * @return  bool
      */
     public function isChanged()
     {
