@@ -571,7 +571,7 @@ abstract class Handler
         if (!$model->save()) {
             throw new Exception(
                 'An unknown error occurred',
-                static::ERROR_SCOPE | static::ERROR_UNKNOWN,
+                static::ERROR_SCOPE | static::ERROR_UNKNOWN_ID,
                 BaseResponse::HTTP_INTERNAL_SERVER_ERROR
             );
         }
@@ -614,7 +614,7 @@ abstract class Handler
         if (!$model->save()) {
             throw new Exception(
                 'An unknown error occurred',
-                static::ERROR_SCOPE | static::ERROR_UNKNOWN,
+                static::ERROR_SCOPE | static::ERROR_UNKNOWN_ID,
                 BaseResponse::HTTP_INTERNAL_SERVER_ERROR
             );
         }
