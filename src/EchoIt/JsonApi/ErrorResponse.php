@@ -15,6 +15,7 @@ class ErrorResponse extends JsonResponse
      * @param int    $httpStatusCode HTTP status code
      * @param mixed  $errorCode      Internal error code
      * @param string $errorTitle     Error description
+     * @param array  $additionalAttrs
      */
     public function __construct($httpStatusCode, $errorCode, $errorTitle, array $additionalAttrs = array())
     {

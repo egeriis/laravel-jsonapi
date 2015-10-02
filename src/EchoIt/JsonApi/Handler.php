@@ -36,7 +36,7 @@ abstract class Handler
     /**
      * Constructor.
      *
-     * @param JsonApi\Request $request
+     * @param \EchoIt\JsonApi\Request $request
      */
     public function __construct(Request $request)
     {
@@ -57,7 +57,8 @@ abstract class Handler
     /**
      * Fulfill the API request and return a response.
      *
-     * @return JsonApi\Response
+     * @return \EchoIT\JsonApi\Response
+     * @throws Exception
      */
     public function fulfillRequest()
     {
@@ -135,6 +136,7 @@ abstract class Handler
     /**
      * Returns which requested resources are available to include.
      *
+     * @param Model $model
      * @return array
      */
     protected function exposedRelationsFromRequest($model = null)
@@ -174,7 +176,7 @@ abstract class Handler
     /**
      * Iterate through result set to fetch the requested resources to include.
      *
-     * @param  Illuminate\Database\Eloquent\Collection|JsonApi\Model $models
+     * @param  \Illuminate\Database\Eloquent\Collection|\EchoIT\JsonApi\Model $models
      * @return array
      */
     protected function getIncludedModels($models)
@@ -315,9 +317,10 @@ abstract class Handler
     /**
      * Returns the models from a relationship. Will always return as array.
      *
-     * @param  Illuminate\Database\Eloquent\Model $model
+     * @param  \Illuminate\Database\Eloquent\Model $model
      * @param  string $relationKey
-     * @return array|Illuminate\Database\Eloquent\Collection
+     * @return array|\Illuminate\Database\Eloquent\Collection
+     * @throws Exception
      */
     protected static function getModelsForRelation($model, $relationKey)
     {
@@ -346,7 +349,7 @@ abstract class Handler
      *
      * @param  array &$array
      * @param  string $key
-     * @return Illuminate\Database\Eloquent\Collection
+     * @return \Illuminate\Database\Eloquent\Collection
      */
     protected static function getCollectionOrCreate(&$array, $key)
     {
@@ -374,8 +377,9 @@ abstract class Handler
      * Function to handle sorting requests.
      *
      * @param  array $cols list of column names to sort on
-     * @param  EchoIt\JsonApi\Model $model
-     * @return EchoIt\JsonApi\Model
+     * @param  \EchoIt\JsonApi\Model $model
+     * @return \EchoIt\JsonApi\Model
+     * @throws Exception
      */
     protected function handleSortRequest($cols, $model)
     {
@@ -404,6 +408,7 @@ abstract class Handler
      * @param  string $content
      * @param  string $type the type the content is expected to be.
      * @return array
+     * @throws Exception
      */
     protected function parseRequestContent($content, $type)
     {
@@ -439,10 +444,10 @@ abstract class Handler
     /**
      * Function to handle pagination requests.
      *
-     * @param  EchoIt\JsonApi\Request $request
-     * @param  EchoIt\JsonApi\Model $model
+     * @param  \EchoIt\JsonApi\Request $request
+     * @param  \EchoIt\JsonApi\Model $model
      * @param integer $total the total number of records
-     * @return Illuminate\Pagination\LengthAwarePaginator
+     * @return \Illuminate\Pagination\LengthAwarePaginator
      */
     protected function handlePaginationRequest($request, $model, $total = null)
     {
@@ -473,8 +478,8 @@ abstract class Handler
      * Function to handle filtering requests.
      *
      * @param  array $filters key=>value pairs of column and value to filter on
-     * @param  EchoIt\JsonApi\Model $model
-     * @return EchoIt\JsonApi\Model
+     * @param  \EchoIt\JsonApi\Model $model
+     * @return \EchoIt\JsonApi\Model
      */
     protected function handleFilterRequest($filters, $model)
     {
@@ -488,9 +493,10 @@ abstract class Handler
      * Default handling of GET request.
      * Must be called explicitly in handleGet function.
      *
-     * @param  EchoIt\JsonApi\Request $request
-     * @param  EchoIt\JsonApi\Model $model
-     * @return EchoIt\JsonApi\Model|Illuminate\Pagination\LengthAwarePaginator
+     * @param  \EchoIt\JsonApi\Request $request
+     * @param  \EchoIt\JsonApi\Model $model
+     * @return \EchoIt\JsonApi\Model|\Illuminate\Pagination\LengthAwarePaginator
+     * @throws Exception
      */
     protected function handleGetDefault(Request $request, $model)
     {
@@ -531,12 +537,12 @@ abstract class Handler
      * Validates passed data against a model
      * Validation performed safely and only if model provides rules
      *
-     * @param  EchoIt\JsonApi\Model $model  model to validate against
-     * @param  Array                $values passed array of values
+     * @param  \EchoIt\JsonApi\Model $model  model to validate against
+     * @param  Array                 $values passed array of values
      *
-     * @throws Exception\Validation         Exception thrown when validation fails
+     * @throws Exception\Validation          Exception thrown when validation fails
      *
-     * @return Bool                         true if validation successful
+     * @return Bool                          true if validation successful
      */
     protected function validateModelData(Model $model, Array $values)
     {
@@ -558,9 +564,10 @@ abstract class Handler
      * Default handling of POST request.
      * Must be called explicitly in handlePost function.
      *
-     * @param  EchoIt\JsonApi\Request $request
-     * @param  EchoIt\JsonApi\Model $model
-     * @return EchoIt\JsonApi\Model
+     * @param  \EchoIt\JsonApi\Request $request
+     * @param  \EchoIt\JsonApi\Model $model
+     * @return \EchoIt\JsonApi\Model
+     * @throws Exception
      */
     public function handlePostDefault(Request $request, $model)
     {
@@ -584,9 +591,10 @@ abstract class Handler
      * Default handling of PUT request.
      * Must be called explicitly in handlePut function.
      *
-     * @param  EchoIt\JsonApi\Request $request
-     * @param  EchoIt\JsonApi\Model $model
-     * @return EchoIt\JsonApi\Model
+     * @param  \EchoIt\JsonApi\Request $request
+     * @param  \EchoIt\JsonApi\Model   $model
+     * @return \EchoIt\JsonApi\Model
+     * @throws Exception
      */
     public function handlePutDefault(Request $request, $model)
     {
@@ -639,9 +647,10 @@ abstract class Handler
      * Default handling of DELETE request.
      * Must be called explicitly in handleDelete function.
      *
-     * @param  EchoIt\JsonApi\Request $request
-     * @param  EchoIt\JsonApi\Model $model
-     * @return EchoIt\JsonApi\Model
+     * @param  \EchoIt\JsonApi\Request $request
+     * @param  \EchoIt\JsonApi\Model $model
+     * @return \EchoIt\JsonApi\Model
+     * @throws Exception
      */
     public function handleDeleteDefault(Request $request, $model)
     {

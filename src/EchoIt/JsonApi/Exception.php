@@ -16,6 +16,7 @@ class Exception extends \Exception
      * @param string  $message        The Exception message to throw
      * @param int     $code           The Exception code
      * @param int     $httpStatusCode HTTP status code which can be used for broken request
+     * @param array   $additionalAttrs
      */
     public function __construct($message = '', $code = 0, $httpStatusCode = 500, array $additionalAttrs = array())
     {
@@ -28,7 +29,7 @@ class Exception extends \Exception
     /**
      * This method returns a HTTP response representation of the Exception
      *
-     * @return JsonApi\ErrorResponse
+     * @return \EchoIt\JsonApi\ErrorResponse
      */
     public function response()
     {
