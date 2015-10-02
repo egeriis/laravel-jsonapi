@@ -27,7 +27,15 @@ class MultiErrorResponse extends JsonResponse
 
                 foreach ($errors->get($field) as $message) {
 
-                    $data['errors'][] = [ 'status' => $httpStatusCode, 'code' => $errorCode, 'title' =>  'Validation Fail', 'detail' => $message, 'meta' => ['field' => $field] ];
+                    $data['errors'][] = [
+                        'status' => (string) $httpStatusCode,
+                        'code'   => (string) $errorCode,
+                        'title'  => 'Validation Fail',
+                        'detail' => (string) $message,
+                        'meta' => [
+                          'field' => $field
+                        ]
+                    ];
 
                 }
 
