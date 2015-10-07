@@ -19,19 +19,21 @@ class ErrorResponseTest extends PHPUnit_Framework_TestCase
     public function testResponseBody()
     {
         $res = new ErrorResponse(404, 100, 'An error occurred');
-        $this->assertEquals('{"errors":[{"status":404,"code":100,"title":"An error occurred"}]}', $res->getContent());
+        $this->assertEquals('{"errors":[{"status":"404","code":"100","title":"An error occurred"}]}', $res->getContent());
         $this->assertJsonapiValid($res->getData());
     }
 
     public function testResponseWithAdditionalAttrs()
     {
         $res = new ErrorResponse(404, 100, 'An error occurred', [
-            'stacktrace' => [
-                'line' => 100,
-                'file' => 'script.php'
-            ]
+            'meta' => [
+                'stacktrace' => [
+                    'line' => 100,
+                    'file' => 'script.php'
+                ],
+            ],
         ]);
-        $this->assertEquals('{"errors":[{"status":404,"code":100,"title":"An error occurred","stacktrace":{"line":100,"file":"script.php"}}]}', $res->getContent());
+        $this->assertEquals('{"errors":[{"status":"404","code":"100","title":"An error occurred","meta":{"stacktrace":{"line":100,"file":"script.php"}}}]}', $res->getContent());
         $this->assertJsonapiValid($res->getData());
     }
 }
