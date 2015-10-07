@@ -94,7 +94,8 @@ class Model extends \Eloquent
     /**
      * mark this model as changed
      *
-     * @return  bool
+     * @param   bool $changed
+     * @return  void
      */
     public function markChanged($changed = true)
     {
@@ -127,7 +128,7 @@ class Model extends \Eloquent
      *
      * @param  Array  $values  user passed values (request data)
      *
-     * @return bool|Illuminate\Support\MessageBag  True on pass, MessageBag of errors on fail
+     * @return bool|\Illuminate\Support\MessageBag  True on pass, MessageBag of errors on fail
      */
     public function validateArray(Array $values)
     {

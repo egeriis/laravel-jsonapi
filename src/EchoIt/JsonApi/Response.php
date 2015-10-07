@@ -34,6 +34,7 @@ class Response
      * Constructor
      *
      * @param array|object $body
+     * @param int $httpStatusCode
      */
     public function __construct($body, $httpStatusCode = 200)
     {
@@ -60,7 +61,7 @@ class Response
      * Returns a JsonResponse with the set parameters and body.
      *
      * @param  string $bodyKey The key on which to set the main response.
-     * @return Illuminate\Http\JsonResponse
+     * @return \Illuminate\Http\JsonResponse
      */
     public function toJsonResponse($bodyKey = 'data', $options = 0)
     {

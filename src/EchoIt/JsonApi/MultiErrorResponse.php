@@ -13,10 +13,10 @@ class MultiErrorResponse extends JsonResponse
     /**
      * Constructor.
      *
-     * @param int                           $httpStatusCode   HTTP status code
-     * @param mixed                         $errorCode        Internal error code
-     * @param string                        $errorTitle       Error description
-     * @param Illuminate\Support\MessageBag $errors           Validation errors
+     * @param int                            $httpStatusCode   HTTP status code
+     * @param mixed                          $errorCode        Internal error code
+     * @param string                         $errorTitle       Error description
+     * @param \Illuminate\Support\MessageBag $errors           Validation errors
      */
     public function __construct($httpStatusCode, $errorCode, $errorTitle, ValidationMessages $errors = NULL)
     {
