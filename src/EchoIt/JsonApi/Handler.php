@@ -277,7 +277,7 @@ abstract class Handler
         // if we did a put request, we need to ensure that the model wasn't
         // changed in other ways than those specified by the request
         //     Ref: http://jsonapi.org/format/#crud-updating-responses-200
-        if ($method === 'PUT' && $model instanceof Model) {
+        if (($method === 'PATCH' || $method === 'PUT') && $model instanceof Model) {
             // check if the model has been changed
             if ($model->isChanged()) {
                 // return our response as if there was a GET request
@@ -288,6 +288,7 @@ abstract class Handler
         switch ($method) {
             case 'POST':
                 return BaseResponse::HTTP_CREATED;
+            case 'PATCH':
             case 'PUT':
             case 'DELETE':
                 return BaseResponse::HTTP_NO_CONTENT;
@@ -296,7 +297,7 @@ abstract class Handler
         }
 
         // Code shouldn't reach this point, but if it does we assume that the
-        // client has made a bad request, e.g. PATCH
+        // client has made a bad request.
         return BaseResponse::HTTP_BAD_REQUEST;
     }
 
