@@ -1,6 +1,8 @@
 JSON API helpers for Laravel 5
 =====
 
+[![Build Status](https://travis-ci.org/echo-it/laravel-jsonapi.svg)](https://travis-ci.org/echo-it/laravel-jsonapi)
+
 Make it a breeze to create a [jsonapi.org](http://jsonapi.org/) compliant API with Laravel 5.
 
 This library strives to be up to date with the latest JSON API updates—as the spec is still a work in progress. If you notice that something is missing, please contribute!
