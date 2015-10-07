@@ -29,7 +29,7 @@ abstract class Handler
     const ERROR_HTTP_METHOD_NOT_ALLOWED = 16;
     const ERROR_ID_PROVIDED_NOT_ALLOWED = 32;
     const ERROR_MISSING_DATA = 64;
-    const ERROR_RESERVED_7 = 128;
+    const ERROR_UNKNOWN = 128;
     const ERROR_RESERVED_8 = 256;
     const ERROR_RESERVED_9 = 512;
 
