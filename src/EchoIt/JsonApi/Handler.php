@@ -196,7 +196,7 @@ abstract class Handler
 
                     // Check whether the object is already included in the response on it's ID
                     $duplicate = false;
-                    $items = $links->where('id', $obj->getKey());
+                    $items = $links->where($obj->getKeyName(), '=', $obj->getKey());
                     if (count($items) > 0) {
                         foreach ($items as $item) {
                             if ($item->getResourceType() === $obj->getResourceType()) {
@@ -513,7 +513,7 @@ abstract class Handler
                 $model = $this->handleSortRequest($request->sort, $model);
             }
         } else {
-            $model = $model->where('id', '=', $request->id);
+            $model = $model->where($model->getKeyName(), '=', $request->id);
         }
 
         try {
