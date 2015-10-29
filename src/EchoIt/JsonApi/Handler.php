@@ -521,7 +521,7 @@ abstract class Handler
                 'Database Request Failed',
                 static::ERROR_SCOPE | static::ERROR_UNKNOWN_ID,
                 BaseResponse::HTTP_INTERNAL_SERVER_ERROR,
-                array('details' => $e->getMessage())
+                array('detail' => $e->getMessage())
             );
         }
         return $results;
