@@ -384,19 +384,13 @@ abstract class Handler
     protected function handleSortRequest($cols, $model)
     {
         foreach ($cols as $col) {
-            $directionSymbol = substr($col, 0, 1);
-            if ($directionSymbol === "+" || substr($col, 0, 3) === '%2B') {
-                $dir = 'asc';
-            } elseif ($directionSymbol === "-") {
+            $dir = 'asc';
+
+            if (substr($col, 0, 1) == '-') {
                 $dir = 'desc';
-            } else {
-                throw new Exception(
-                    'Sort direction not specified but is required. Expecting "+" or "-".',
-                    static::ERROR_SCOPE | static::ERROR_UNKNOWN_ID,
-                    BaseResponse::HTTP_BAD_REQUEST
-                );
+                $col = substr($col, 1);
             }
-            $col = substr($col, 1);
+
             $model = $model->orderBy($col, $dir);
         }
         return $model;
