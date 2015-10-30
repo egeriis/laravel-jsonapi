@@ -1,6 +1,17 @@
 JSON API helpers for Laravel 5
 =====
 
+Important!
+-----
+This is a fork from [egeriis/laravel-jsonapi](https://github.com/egeriis/laravel-jsonapi) repository, I modified it based on my own needs. It works fine for me, but I'm not sure if it will work for you. Is compatible with JSON API 1.0 specs, but not all features are implemented at this time. I'll finish this later, but I won't be able to provide support or actively contribute to finish it. 
+
+Main differences between this fork and the original repo:
+
+1. JSON API 1.0 compilance
+2. Caching (tested using redis driver)
+
+Original readme:
+
 [![Build Status](https://travis-ci.org/echo-it/laravel-jsonapi.svg)](https://travis-ci.org/echo-it/laravel-jsonapi)
 
 Make it a breeze to create a [jsonapi.org](http://jsonapi.org/) compliant API with Laravel 5.
@@ -49,13 +60,26 @@ use Request;
 
 class ApiController extends Controller
 {
-    public function handleRequest($modelName, $id = null)
+    /**
+     * Create handler name from request name
+     *
+     * @param $requestedResource string The name of the model (in plural)
+     *
+     * @return string Class name of related resource
+   	 */
+   	public function getHandlerClassName($requestedResource) {
+   		$modelName = Pluralizer::singular($requestedResource);
+  
+    	return 'App\\Handlers\\' . ucfirst($modelName) . 'Handler';
+    }
+    
+    public function handleRequest($requestedResource, $id = null)
     {
         /**
          * Create handler name from model name
          * @var string
          */
-        $handlerClass = 'App\\Handlers\\' . ucfirst($modelName) . 'Handler';
+        $handlerClass = $this->getHandlerClassName($requestedResource);
 
         if (class_exists($handlerClass)) {
 			$url = Request::url();

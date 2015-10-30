@@ -1,5 +1,5 @@
 {
-    "name": "echo-it/laravel-jsonapi",
+    "name": "iamjulianacosta/laravel-jsonapi",
     "license": "MIT",
     "authors": [
         {
@@ -9,7 +9,11 @@
 		{
             "name": "Jared Chapiewsky",
             "email": "chapiewsky@earthlinginteractive.com"
-        }
+        },
+        {
+            "name": "Julián Acosta",
+            "email": "iam@julianacosta.me"
+        }  
     ],
     "require": {
         "illuminate/database": "5.1.*",
