@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\Pivot as Pivot;
  *
  * @author Ronni Egeriis Persson <ronni@egeriis.me>
  */
-class Model extends \Eloquent
+class Model extends \Illuminate\Database\Eloquent\Model
 {
     /**
      * Let's guard these fields per default
