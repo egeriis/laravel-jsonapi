@@ -243,7 +243,7 @@ abstract class Model extends \Eloquent {
 	}
 
 	public function getModelURL () {
-		return url (sprintf ('%s/%d', $this->getResourceType (), $this->id));
+		return url (sprintf ('%s/%d', Pluralizer::plural($this->getResourceType ()), $this->id));
 	}
 
 	/**
