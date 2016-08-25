@@ -22,8 +22,6 @@ abstract class Model extends \Eloquent {
 	 */
 	protected $rules = array();
 	
-	static public $namespace;
-	
 	/**
 	 * @var integer Amount time that response should be cached
 	 */

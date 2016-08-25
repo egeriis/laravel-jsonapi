@@ -2,10 +2,8 @@
 
 	namespace EchoIt\JsonApi;
 	
-	use EchoIt\JsonApi\Request;
 	use EchoIt\JsonApi\Exception;
-	use EchoIt\JsonApi\Response;
-	use EchoIt\JsonApi\Model;
+	use Illuminate\Http\JsonResponse;
 	use Illuminate\Support\Collection;
 	use Illuminate\Http\Response as BaseResponse;
 	use Illuminate\Support\Pluralizer;
@@ -63,11 +61,12 @@
 		protected $resourceName;
 		
 		protected $modelsNamespace;
-
+		
 		/**
 		 * BaseHandler constructor. Defines modelName based of HandlerName
 		 *
 		 * @param Request $request
+		 * @param         $modelsNamespace
 		 */
 		public function __construct (Request $request, $modelsNamespace) {
 			$this->request = $request;
@@ -129,12 +128,14 @@
 				return $this->fulfillNonCacheableRequest ($models);
 			}
 		}
-
+		
 		/**
 		 * Fullfills GET requests
+		 *
 		 * @param $models
 		 * @param $request
-		 * @return
+		 *
+		 * @return mixed
 		 */
 		private function fulfillCacheableRequest ($models, $request) {
 			$id = $request->id;
@@ -152,15 +153,15 @@
 				}
 			);
 		}
-
+		
 		/**
 		 * Fullfills POST, PATCH and DELETE requests
 		 *
 		 * @param \Illuminate\Http\Request $models
-		 * @param $request
 		 *
-		 * @return Response
-		 * @throws Exception
+		 * @return \EchoIt\JsonApi\Response
+		 * @internal param $request
+		 *
 		 */
 		private function fulfillNonCacheableRequest ($models) {
 			return $this->generateResponse($models);
@@ -173,11 +174,14 @@
 			$modelName = $this->fullModelName;
 			return $modelName::allowsModifyingByAllUsers ();
 		}
-
+		
 		/**
 		 * Returns handler class name with namespace
 		 *
-		 * @param $handlerShortName string The name of the model (in plural)
+		 * @param      $handlerShortName string The name of the model (in plural)
+		 *
+		 * @param bool $isPlural
+		 * @param bool $short
 		 *
 		 * @return string Class name of related resource
 		 */
@@ -205,7 +209,7 @@
 		/**
 		 * @param $models
 		 * @param $loadRelations
-		 * @return Response
+		 * @return JsonResponse
 		 */
 		private function generateResponse ($models, $loadRelations = true) {
 			if ($models instanceof Response) {
@@ -251,7 +255,7 @@
 		/**
 		 * @return mixed
 		 */
-		private function getModel ($request) {
+		private function getModel (Request $request) {
 			$methodName = static::methodHandlerName ($request->method);
 			$models = $this->{$methodName}($request);
 
@@ -440,7 +444,7 @@
 		/**
 		 * Iterate through result set to fetch the requested resources to include.
 		 *
-		 * @param  \Illuminate\Database\Eloquent\Collection|\EchoIT\JsonApi\Model $models
+		 * @param Model $models
 		 * @return array
 		 */
 		protected function getIncludedModels ($models) {
