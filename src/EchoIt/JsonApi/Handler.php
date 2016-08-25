@@ -456,10 +456,11 @@
 					}
 
 					//Each one of the models relations
+					/* @var Model $obj*/
 					foreach ($value as $obj) {
 						// Check whether the object is already included in the response on it's ID
 						$duplicate = false;
-						$items = $links->where ('id', $obj->getKey ());
+						$items = $links->where ($obj->getPrimaryKey (), $obj->getKey ());
 						
 						if (count ($items) > 0) {
 							foreach ($items as $item) {

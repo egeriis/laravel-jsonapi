@@ -429,5 +429,12 @@ abstract class Model extends \Eloquent {
 	protected function dasherizeKey ($key) {
 		return s($key)->dasherize()->__toString();
 	}
+	
+	/**
+	 * @return string
+	 */
+	public function getPrimaryKey () {
+		return $this->primaryKey;
+	}
 
 }
