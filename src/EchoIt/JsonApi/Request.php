@@ -1,5 +1,7 @@
 <?php namespace EchoIt\JsonApi;
 
+use Illuminate\Http\Request as BaseRequest;
+
 /**
  * A class used to represented a client request to the API.
  *
@@ -7,7 +9,12 @@
  */
 class Request
 {
-
+	
+	/**
+	 * @var \Illuminate\Http\Request
+	 */
+	public $originalRequest;
+   
     /**
      * Contains the url of the request
      *
@@ -84,9 +91,10 @@ class Request
      * @param integer $pageNumber
      * @param integer $pageSize
      */
-    public function __construct($url, $method, $id = null, $content = null, $include = [], $sort = [], $filter = [], $pageNumber = null, $pageSize = null)
+    public function __construct(BaseRequest $originalRequest, $url, $method, $id = null, $content = null, $include = [], $sort = [], $filter = [], $pageNumber = null, $pageSize = null)
     {
-        $this->url = $url;
+        $this->originalRequest = $originalRequest;
+    	$this->url = $url;
         $this->method = $method;
         $this->id = $id;
         $this->content = $content;
