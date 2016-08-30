@@ -290,7 +290,9 @@
 				$key, static::$cacheTime,
 				function () use ($modelName, $request) {
 					$model = $modelName::find ($request->id);
-					$this->loadRelatedModels ($model);
+					if ($model) {
+						$this->loadRelatedModels ($model);
+					}
 					return $model;
 				}
 			);
