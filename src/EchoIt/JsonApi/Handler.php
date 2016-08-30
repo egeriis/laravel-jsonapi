@@ -290,7 +290,9 @@
 				$key, static::$cacheTime,
 				function () use ($modelName, $request) {
 					$model = $modelName::find ($request->id);
-					$this->loadRelatedModels ($model);
+					if ($model) {
+						$this->loadRelatedModels ($model);
+					}
 					return $model;
 				}
 			);
@@ -360,12 +362,13 @@
 			$modelName = $this->fullModelName;
 			/** @var Model $model */
 			$model = $modelName::find ($id);
-
-			$this->verifyUserPermission($request, $model);
-
+			
 			if (is_null ($model)) {
 				return null;
 			}
+			
+			$this->verifyUserPermission($request, $model);
+			
 			$originalAttributes = $model->getOriginal ();
 
 			if (array_key_exists ("attributes", $data)) {
