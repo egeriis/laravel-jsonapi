@@ -1,3 +1,5 @@
+__!!!__ Project abandoned. See [cloudcreativity/laravel-json-api](https://github.com/cloudcreativity/json-api/) for a great alternative.
+
 JSON API helpers for Laravel 5
 =====
 
