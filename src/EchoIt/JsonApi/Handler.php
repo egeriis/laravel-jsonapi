@@ -3,6 +3,11 @@
 	namespace EchoIt\JsonApi;
 	
 	use EchoIt\JsonApi\Exception;
+	use Illuminate\Database\Eloquent\Relations\BelongsTo;
+	use Illuminate\Database\Eloquent\Relations\HasOneOrMany;
+	use Illuminate\Database\Eloquent\Relations\MorphMany;
+	use Illuminate\Database\Eloquent\Relations\MorphOneOrMany;
+	use Illuminate\Database\Eloquent\Relations\Relation;
 	use Illuminate\Http\JsonResponse;
 	use Illuminate\Support\Collection;
 	use Illuminate\Http\Response as BaseResponse;
@@ -324,23 +329,27 @@
 		}
 
 		/**
+		 * Handle POST requests
+		 *
 		 * @param Request $request
 		 *
-		 * @return static
+		 * @return Model
 		 * @throws Exception
 		 * @throws Exception\Validation
 		 */
 		public function handlePost (Request $request) {
 			$modelName = $this->fullModelName;
-			$data = $this->parseRequestContent ($request->content, $this->shortModelName);
+			$data = $this->parseRequestContent ($request->content);
 			$this->normalizeAttributes ($data ["attributes"]);
-			$values = $data ["attributes"];
-
+			
+			$attributes = $data ["attributes"];
+			
 			/** @var Model $model */
-			$model = new $modelName ($values);
-			$this->updateRelationships ($data, $model);
-
-			$this->validateModelData ($model, $values);
+			$model = new $modelName ($attributes);
+			
+			//Update relationships twice, first to update belongsTo and then to update polymorphic and others
+			$this->updateRelationships ($data, $model, true);
+			$this->validateModelData ($model, $attributes);
 
 			if (!$model->save ()) {
 				throw new Exception(
@@ -348,15 +357,23 @@
 					BaseResponse::HTTP_INTERNAL_SERVER_ERROR);
 			}
 
+			$this->updateRelationships ($data, $model, true);
 			$model->markChanged ();
-
 			$this->clearCache();
 
 			return $model;
 		}
-
+		
+		/**
+		 * Handle PATCH requests
+		 *
+		 * @param \EchoIt\JsonApi\Request $request
+		 *
+		 * @return \EchoIt\JsonApi\Model|null
+		 * @throws \EchoIt\JsonApi\Exception
+		 */
 		public function handlePatch (Request $request) {
-			$data = $this->parseRequestContent ($request->content, $this->shortModelName);
+			$data = $this->parseRequestContent ($request->content, false);
 			$id = $data["id"];
 
 			$modelName = $this->fullModelName;
@@ -373,13 +390,13 @@
 
 			if (array_key_exists ("attributes", $data)) {
 				$this->normalizeAttributes ($data ["attributes"]);
-				$values = $data ["attributes"];
-
-				$model->fill ($values);
-				$this->validateModelData ($model, $values);
+				$attributes = $data ["attributes"];
+				
+				$model->fill ($attributes);
+				$this->validateModelData ($model, $attributes);
 			}
 
-			$this->updateRelationships ($data, $model);
+			$this->updateRelationships ($data, $model, false);
 
 			// ensure we can get a successful save
 			if (!$model->save ()) {
@@ -401,13 +418,12 @@
 		}
 
 		/**
-		 * Default handling of DELETE request.
-		 * Must be called explicitly in handleDelete function.
+		 * Handle DELETE requests
 		 *
 		 * @param  \EchoIt\JsonApi\Request $request
 		 *
 		 * @return \EchoIt\JsonApi\Model
-		 * @throws Exception
+		 * @throws \EchoIt\JsonApi\Exception
 		 */
 		public function handleDelete (Request $request) {
 			if (empty($request->id)) {
@@ -471,6 +487,7 @@
 						
 						if (count ($items) > 0) {
 							foreach ($items as $item) {
+								/** @var $item Model */
 								if ($item->getResourceType () === $obj->getResourceType ()) {
 									$duplicate = true;
 									break;
@@ -493,40 +510,41 @@
 			
 			return $links->toArray ();
 		}
-
+		
 		/**
 		 * Parses content from request into an array of values.
 		 *
 		 * @param  string $content
-		 * @param  string $type the type the content is expected to be.
+		 * @param bool    $newRecord
+		 *
 		 * @return array
-		 * @throws Exception
+		 * @throws \EchoIt\JsonApi\Exception
+		 * @internal param string $type the type the content is expected to be.
 		 */
-		protected function parseRequestContent ($content, $type, $newRecord = true) {
+		protected function parseRequestContent ($content, $newRecord = true) {
 			$content = json_decode ($content, true);
-			
+
 			$data = $content['data'];
-			$type = s (Pluralizer::plural ($type))->dasherize()->__toString();
-			
+
 			if (empty($data)) {
 				throw new Exception(
 					'Payload either contains misformed JSON or missing "data" parameter.',
 					static::ERROR_SCOPE | static::ERROR_INVALID_ATTRS, BaseResponse::HTTP_BAD_REQUEST);
 			}
-			if ($newRecord === false && !isset($data['id'])) {
-				throw new Exception(
-					'"id" parameter not set in request.', static::ERROR_SCOPE | static::ERROR_INVALID_ATTRS,
-					BaseResponse::HTTP_BAD_REQUEST);
-			}
-			if (!isset($data['type'])) {
+			if (array_key_exists ("type", $data) === false) {
 				throw new Exception(
 					'"type" parameter not set in request.', static::ERROR_SCOPE | static::ERROR_INVALID_ATTRS,
 					BaseResponse::HTTP_BAD_REQUEST);
 			}
-			if ($data['type'] !== $type) {
+			if ($data['type'] !== $type = Pluralizer::plural (s ($this->resourceName)->camelize ()->__toString ())) {
 				throw new Exception(
 					'"type" parameter is not valid. Expecting ' . $type,
 					static::ERROR_SCOPE | static::ERROR_INVALID_ATTRS, BaseResponse::HTTP_CONFLICT);
+			}
+			if ($newRecord === false && !isset($data['id'])) {
+				throw new Exception(
+					'"id" parameter not set in request.', static::ERROR_SCOPE | static::ERROR_INVALID_ATTRS,
+					BaseResponse::HTTP_BAD_REQUEST);
 			}
 			
 			unset ($content ['type']);
@@ -542,42 +560,29 @@
 		 *
 		 * @throws Exception
 		 */
-		protected function updateRelationships ($data, Model $model) {
+		protected function updateRelationships ($data, Model $model, $creating = false) {
 			if (array_key_exists ("relationships", $data)) {
 				//If we have a relationship object in the payload
 				$relationships = $data ["relationships"];
 				
 				//Iterate all the relationships object
-				foreach ($relationships as $relationship) {
+				foreach ($relationships as $relationshipName => $relationship) {
 					if (is_array ($relationship)) {
 						//If the relationship object is an array
 						if (array_key_exists ('data', $relationship)) {
 							//If the relationship has a data object
 							$relationshipData = $relationship ['data'];
 							if (is_array ($relationshipData)) {
-								//If the data object is an array
+								//One to one
 								if (array_key_exists ('type', $relationshipData)) {
-									//If we have a type of the relationship data
-									$type = $relationshipData['type'];
-									$relationshipModelName = Model::getModelClassName ($type, $this->modelsNamespace);
-									$relationshipModelShortName = Model::getModelClassName ($type, $this->modelsNamespace, true, true, true, false);
-									$modelPluralName = Pluralizer::plural ($model->getResourceType ());
-									if (array_key_exists ('id', $relationshipData)) {
-										//If we have an id of the relationship data
-										$newRelationshipModel = $relationshipModelName::find ($relationshipData['id']);
-										if ($newRelationshipModel) {
-											//Relationship exists in model
-											if (method_exists ($model, $relationshipModelShortName)) {
-												$model->$relationshipModelShortName ()
-												      ->associate ($newRelationshipModel);
-											}
-											//Inverse polymorphic relationship exists in relationship
-											else if (method_exists ($newRelationshipModel, $modelPluralName)) {
-												$newRelationshipModel->{$modelPluralName}()->save ($model);
-											}
-											//Nothing.
-											else {
-											}
+									$this->updateSingleRelationship ($model, $relationshipData, $relationshipName, $creating);
+								}
+								//One to many
+								else if (count(array_filter(array_keys($relationshipData), 'is_string')) == 0) {
+									$relationshipDataItems = $relationshipData;
+									foreach ($relationshipDataItems as $relationshipDataItem) {
+										if (array_key_exists ('type', $relationshipDataItem)) {
+											$this->updateSingleRelationship ($model, $relationshipDataItem, $relationshipName, $creating);
 										}
 										else {
 											throw new Exception(
@@ -586,15 +591,8 @@
 												BaseResponse::HTTP_BAD_REQUEST);
 										}
 									}
-									else {
-										throw new Exception(
-											'Relationship id not present in the request',
-											static::ERROR_SCOPE | static::ERROR_INVALID_ATTRS,
-											BaseResponse::HTTP_BAD_REQUEST);
-									}
 								}
 								else {
-									//Payload doesn't have relationship type
 									throw new Exception(
 										'Relationship type not present in the request',
 										static::ERROR_SCOPE | static::ERROR_INVALID_ATTRS,
@@ -740,11 +738,12 @@
 
 			foreach ($relations as $relation) {
 				// if this relation is loaded via a method, then call said method
+				/** @var $model Model */
 				if (in_array($relation, $model->relationsFromMethod())) {
 					$model->$relation = $model->$relation();
 					continue;
 				}
-
+				
 				$model->load($relation);
 			}
 		}
@@ -764,6 +763,7 @@
 				// and if we have a model
 				if ($model !== null && $model instanceof Model) {
 					// then use the relations exposed by default
+					/** @var $model Model */
 					$exposedRelations = array_intersect($exposedRelations, $model->defaultExposedRelations());
 					$model->setExposedRelations($exposedRelations);
 					return $exposedRelations;
@@ -1060,7 +1060,7 @@
 		 * Validation performed safely and only if model provides rules
 		 *
 		 * @param  \EchoIt\JsonApi\Model $model  model to validate against
-		 * @param  Array                 $values passed array of values
+		 * @param  array                 $values passed array of values
 		 *
 		 * @throws Exception\Validation          Exception thrown when validation fails
 		 *
@@ -1093,7 +1093,7 @@
 		 */
 		public function handlePostDefault(Request $request, $model)
 		{
-			$values = $this->parseRequestContent($request->content, $model->getResourceType());
+			$values = $this->parseRequestContent ($request->content);
 			$this->validateModelData($model, $values);
 
 			$model->fill($values);
@@ -1128,7 +1128,7 @@
 				);
 			}
 
-			$updates = $this->parseRequestContent($request->content, $model->getResourceType());
+			$updates = $this->parseRequestContent ($request->content);
 
 			$model = $model::find($request->id);
 			if (is_null($model)) {
@@ -1192,5 +1192,60 @@
 			$model->delete();
 
 			return $model;
+		}
+		
+		/**
+		 * @param \EchoIt\JsonApi\Model $model
+		 * @param                       $relationshipData
+		 *
+		 * @param                       $relationshipName
+		 *
+		 * @throws \EchoIt\JsonApi\Exception
+		 */
+		protected function updateSingleRelationship (Model $model, $relationshipData, $relationshipName, $creating) {
+			//If we have a type of the relationship data
+			$type                  = $relationshipData['type'];
+			$relationshipModelName = Model::getModelClassName ($type, $this->modelsNamespace);
+			$relationshipName      = s ($relationshipName)->camelize ()->__toString ();
+			//If we have an id of the relationship data
+			if (array_key_exists ('id', $relationshipData)) {
+				/** @var $relationshipModelName Model */
+				$newRelationshipModel = $relationshipModelName::find ($relationshipData['id']);
+				
+				if ($newRelationshipModel) {
+					//Relationship exists in model
+					if (method_exists ($model, $relationshipName)) {
+						/** @var Relation $relationship */
+						$relationship = $model->$relationshipName ();
+						//If creating, only update belongs to before saving. If not creating (updating), update
+						if ($relationship instanceof BelongsTo && (($creating && $model->isDirty()) || !$creating)) {
+							$relationship->associate ($newRelationshipModel);
+						}
+						//If creating, only update polymorphic saving. If not creating (updating), update
+						else if ($relationship instanceof MorphOneOrMany && (($creating && !$model->isDirty()) || !$creating)) {
+							$relationship->save ($newRelationshipModel);
+							
+						}
+					}
+					else {
+						throw new Exception(
+							'Relationship type invalid',
+							static::ERROR_SCOPE | static::ERROR_INVALID_ATTRS,
+							BaseResponse::HTTP_BAD_REQUEST);
+					}
+				}
+				else {
+					throw new Exception(
+						'Relationship type not present in the request',
+						static::ERROR_SCOPE | static::ERROR_INVALID_ATTRS,
+						BaseResponse::HTTP_BAD_REQUEST);
+				}
+			}
+			else {
+				throw new Exception(
+					'Relationship id not present in the request',
+					static::ERROR_SCOPE | static::ERROR_INVALID_ATTRS,
+					BaseResponse::HTTP_BAD_REQUEST);
+			}
 		}
 	}
