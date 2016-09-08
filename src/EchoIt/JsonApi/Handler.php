@@ -536,7 +536,7 @@
 					'"type" parameter not set in request.', static::ERROR_SCOPE | static::ERROR_INVALID_ATTRS,
 					BaseResponse::HTTP_BAD_REQUEST);
 			}
-			if ($data['type'] !== $type = Pluralizer::plural (s ($this->resourceName)->camelize ()->__toString ())) {
+			if ($data['type'] !== $type = Pluralizer::plural (s ($this->resourceName)->dasherize ()->__toString ())) {
 				throw new Exception(
 					'"type" parameter is not valid. Expecting ' . $type,
 					static::ERROR_SCOPE | static::ERROR_INVALID_ATTRS, BaseResponse::HTTP_CONFLICT);
@@ -586,7 +586,7 @@
 										}
 										else {
 											throw new Exception(
-												'Relationship type not present in the request',
+												'Relationship type key not present in the request for an item',
 												static::ERROR_SCOPE | static::ERROR_INVALID_ATTRS,
 												BaseResponse::HTTP_BAD_REQUEST);
 										}
@@ -594,7 +594,7 @@
 								}
 								else {
 									throw new Exception(
-										'Relationship type not present in the request',
+										'Relationship type key not present in the request',
 										static::ERROR_SCOPE | static::ERROR_INVALID_ATTRS,
 										BaseResponse::HTTP_BAD_REQUEST);
 								}
@@ -1210,7 +1210,8 @@
 			//If we have an id of the relationship data
 			if (array_key_exists ('id', $relationshipData)) {
 				/** @var $relationshipModelName Model */
-				$newRelationshipModel = $relationshipModelName::find ($relationshipData['id']);
+				$relationshipId       = $relationshipData['id'];
+				$newRelationshipModel = $relationshipModelName::find ($relationshipId);
 				
 				if ($newRelationshipModel) {
 					//Relationship exists in model
@@ -1229,21 +1230,22 @@
 					}
 					else {
 						throw new Exception(
-							'Relationship type invalid',
+							"Relationship $relationshipName is not invalid",
 							static::ERROR_SCOPE | static::ERROR_INVALID_ATTRS,
 							BaseResponse::HTTP_BAD_REQUEST);
 					}
 				}
 				else {
+					$formattedType = s(Pluralizer::singular($type))->underscored()->humanize()->toLowerCase()->__toString();
 					throw new Exception(
-						'Relationship type not present in the request',
+						"Model $formattedType with id $relationshipId not found in database",
 						static::ERROR_SCOPE | static::ERROR_INVALID_ATTRS,
 						BaseResponse::HTTP_BAD_REQUEST);
 				}
 			}
 			else {
 				throw new Exception(
-					'Relationship id not present in the request',
+					'Relationship id key not present in the request',
 					static::ERROR_SCOPE | static::ERROR_INVALID_ATTRS,
 					BaseResponse::HTTP_BAD_REQUEST);
 			}
