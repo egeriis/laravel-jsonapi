@@ -10,7 +10,10 @@ Main differences between this fork and the original repo:
 1. JSON API 1.0 compilance
 2. Caching (tested using redis driver)
 
+[![SensioLabsInsight](https://insight.sensiolabs.com/projects/5dda483a-4b79-46b1-81c8-37ac37dcf6b2/big.png)](https://insight.sensiolabs.com/projects/5dda483a-4b79-46b1-81c8-37ac37dcf6b2)
+
 Original readme:
+-----
 
 [![Build Status](https://travis-ci.org/echo-it/laravel-jsonapi.svg)](https://travis-ci.org/echo-it/laravel-jsonapi)
 
