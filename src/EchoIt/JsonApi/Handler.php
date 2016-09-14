@@ -720,8 +720,7 @@
 		 * @param  string $method HTTP method
 		 * @return boolean
 		 */
-		public function supportsMethod($method)
-		{
+		public function supportsMethod($method) {
 			return method_exists($this, static::methodHandlerName($method));
 		}
 
@@ -753,8 +752,7 @@
 		 * @param Model $model
 		 * @return array
 		 */
-		protected function exposedRelationsFromRequest($model = null)
-		{
+		protected function exposedRelationsFromRequest($model = null) {
 			$exposedRelations = static::$exposedRelations;
 
 			// if no relations are to be included by request
@@ -783,8 +781,7 @@
 		 *
 		 * @return array
 		 */
-		protected function unknownRelationsFromRequest()
-		{
+		protected function unknownRelationsFromRequest() {
 			return array_diff($this->request->include, static::$exposedRelations);
 		}
 
@@ -793,8 +790,7 @@
 		 * @param LengthAwarePaginator $paginator
 		 * @return array
 		 */
-		protected function getPaginationLinks(LengthAwarePaginator $paginator)
-		{
+		protected function getPaginationLinks(LengthAwarePaginator $paginator) {
 			$links = [];
 
 			$links['self'] = urldecode($paginator->url($paginator->currentPage()));
@@ -817,8 +813,7 @@
 		 *
 		 * @return array
 		 */
-		protected function getNonBreakingErrors()
-		{
+		protected function getNonBreakingErrors() {
 			$errors = [];
 
 			$unknownRelations = $this->unknownRelationsFromRequest();
@@ -840,8 +835,7 @@
 		 * @param  Model|null $model The model that a PUT request was executed against
 		 * @return int
 		 */
-		public static function successfulHttpStatusCode($method, $model = null)
-		{
+		public static function successfulHttpStatusCode($method, $model = null) {
 			// if we did a put request, we need to ensure that the model wasn't
 			// changed in other ways than those specified by the request
 			//     Ref: http://jsonapi.org/format/#crud-updating-responses-200
@@ -875,8 +869,7 @@
 		 * @param  string $method HTTP method
 		 * @return string
 		 */
-		protected static function methodHandlerName($method)
-		{
+		protected static function methodHandlerName($method) {
 			return 'handle' . ucfirst(strtolower($method));
 		}
 
@@ -888,8 +881,7 @@
 		 * @return array|\Illuminate\Database\Eloquent\Collection
 		 * @throws Exception
 		 */
-		protected static function getModelsForRelation(Model $model, $relationKey)
-		{
+		protected static function getModelsForRelation(Model $model, $relationKey) {
 			if (!method_exists($model, $relationKey)) {
 				throw new Exception(
 					'Relation "' . $relationKey . '" does not exist in model',
@@ -917,8 +909,7 @@
 		 * @param  string $key
 		 * @return \Illuminate\Database\Eloquent\Collection
 		 */
-		protected static function getCollectionOrCreate(&$array, $key)
-		{
+		protected static function getCollectionOrCreate(&$array, $key) {
 			if (array_key_exists($key, $array)) {
 				return $array[$key];
 			}
@@ -934,8 +925,7 @@
 		 * @param  string $relationName
 		 * @return string
 		 */
-		protected static function getModelNameForRelation($relationName)
-		{
+		protected static function getModelNameForRelation($relationName) {
 			return \str_plural($relationName);
 		}
 
@@ -947,8 +937,7 @@
 		 * @return \EchoIt\JsonApi\Model
 		 * @throws Exception
 		 */
-		protected function handleSortRequest($cols, $model)
-		{
+		protected function handleSortRequest($cols, $model) {
 			foreach ($cols as $col) {
 				$dir = 'asc';
 
@@ -970,8 +959,7 @@
 		 * @param integer $total the total number of records
 		 * @return \Illuminate\Pagination\LengthAwarePaginator
 		 */
-		protected function handlePaginationRequest(Request $request, Model $model, $total = null)
-		{
+		protected function handlePaginationRequest(Request $request, Model $model, $total = null) {
 			$page = $request->pageNumber;
 			$perPage = $request->pageSize;
 			if (!$total) {
@@ -1002,8 +990,7 @@
 		 * @param  \EchoIt\JsonApi\Model $model
 		 * @return \EchoIt\JsonApi\Model
 		 */
-		protected function handleFilterRequest($filters, $model)
-		{
+		protected function handleFilterRequest($filters, $model) {
 			foreach ($filters as $key=>$value) {
 				$model = $model->where($key, '=', $value);
 			}
@@ -1021,8 +1008,7 @@
 		 *
 		 * @return Bool                          true if validation successful
 		 */
-		protected function validateModelData(Model $model, Array $values)
-		{
+		protected function validateModelData(Model $model, Array $values) {
 			$validationResponse = $model->validateArray($values);
 
 			if ($validationResponse === true) {
