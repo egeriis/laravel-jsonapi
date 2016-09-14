@@ -138,9 +138,9 @@ abstract class Model extends \Eloquent {
 			return $this->convertToArray ();
 		} else {
 			if (empty($this->getRelations ())) {
-				$key = Cache::getArrayCacheKeyForSingleResourceWithoutRelations($this->getResourceType(), $this->getKey());
+				$key = CacheManager::getArrayCacheKeyForSingleResourceWithoutRelations($this->getResourceType(), $this->getKey());
 			} else {
-				$key = Cache::getArrayCacheKeyForSingleResource($this->getResourceType(), $this->getKey());
+				$key = CacheManager::getArrayCacheKeyForSingleResource($this->getResourceType(), $this->getKey());
 			}
 			return Cache::remember (
 				$key, static::$cacheTime,
