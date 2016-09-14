@@ -3,6 +3,7 @@
 	namespace EchoIt\JsonApi;
 	
 	use EchoIt\JsonApi\Exception;
+	use EchoIt\JsonApi\CacheManager;
 	use Illuminate\Database\Eloquent\Relations\BelongsTo;
 	use Illuminate\Database\Eloquent\Relations\MorphOneOrMany;
 	use Illuminate\Database\Eloquent\Relations\Relation;
@@ -144,10 +145,10 @@
 		private function fulfillCacheableRequest ($models, Request $request) {
 			$id = $request->id;
 			if (empty($id)) {
-				$key = $this->getResponseCacheForMultipleResources ();
+				$key = Cache::getResponseCacheForMultipleResources($this->dasherizedResourceName());
 			}
 			else {
-				$key = $this->getResponseCacheForSingleResource ($id);
+				$key = Cache::getResponseCacheForSingleResource($id, $this->dasherizedResourceName());
 			}
 
 			return Cache::remember (
@@ -289,7 +290,7 @@
 			}
 
 			$modelName = $this->fullModelName;
-			$key = $this->getQueryCacheForSingleResource ($id);
+			$key = Cache::getQueryCacheForSingleResource($id, $this->dasherizedResourceName());
 			$model = Cache::remember (
 				$key, static::$cacheTime,
 				function () use ($modelName, $request) {
@@ -310,7 +311,7 @@
 		 * @return \Illuminate\Database\Eloquent\Collection
 		 */
 		protected function handleGetAll () {
-			$key = $this->getQueryCacheForMultipleResources ();
+			$key = Cache::getQueryCacheForMultipleResources($this->dasherizedResourceName());
 			$modelName = $this->fullModelName;
 			$models = Cache::remember (
 				$key, static::$cacheTime,
@@ -654,18 +655,19 @@
 		private function clearCache ($id = null, Model $model = null) {
 			//ID passed = update record
 			if ($id !== null && $model !== null) {
-				$key = $this->getQueryCacheForSingleResource ($id);
+				$key = Cache::getQueryCacheForSingleResource($id, $this->dasherizedResourceName());
 				Cache::forget($key);
-				$key = $this->getResponseCacheForSingleResource ($id);
+				$key = Cache::getResponseCacheForSingleResource($id, $this->dasherizedResourceName());
 				Cache::forget($key);
-				$key = $model->getArrayCacheKeyForSingleResource ();
+				$key = Cache::getArrayCacheKeyForSingleResource($model->getResourceType(), $model->getKey());
 				Cache::forget($key);
-				$key = $model->getArrayCacheKeyForSingleResourceWithoutRelations ();
+				$key = Cache::getArrayCacheKeyForSingleResourceWithoutRelations($model->getResourceType(),
+					$model->getKey());
 				Cache::forget($key);
 			}
-			$key = $this->getQueryCacheForMultipleResources ();
+			$key = Cache::getQueryCacheForMultipleResources($this->dasherizedResourceName());
 			Cache::forget($key);
-			$key = $this->getResponseCacheForMultipleResources ();
+			$key = Cache::getResponseCacheForMultipleResources($this->dasherizedResourceName());
 			Cache::forget($key);
 		}
 
@@ -675,37 +677,7 @@
 		private function dasherizedResourceName () {
 			return s ($this->resourceName)->dasherize ()->__toString ();
 		}
-
-		/**
-		 * @return string
-		 */
-		private function getQueryCacheForMultipleResources () {
-			return Pluralizer::plural ($this->dasherizedResourceName ()) . ":query";
-		}
-
-		/**
-		 * @param $id
-		 * @return string
-		 */
-		private function getQueryCacheForSingleResource ($id) {
-			return $this->dasherizedResourceName () . ":query:" . $id;
-		}
-
-		/**
-		 * @return string
-		 */
-		private function getResponseCacheForMultipleResources () {
-			return Pluralizer::plural ($this->dasherizedResourceName ()) . ":response";
-		}
-
-		/**
-		 * @param $id
-		 * @return string
-		 */
-		private function getResponseCacheForSingleResource ($id) {
-			return $this->dasherizedResourceName () . ":response:" . $id;
-		}
-
+		
 		/**
 		 * @param Request $request
 		 * @param         $model

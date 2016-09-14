@@ -4,11 +4,12 @@ namespace EchoIt\JsonApi;
 
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Pluralizer;
-use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 use \Illuminate\Support\Collection;
-use function Stringy\create as s;
+use EchoIt\JsonApi\CacheManager;
+use Carbon\Carbon;
 use Cache;
+use function Stringy\create as s;
 
 abstract class Model extends \Eloquent {
 
@@ -137,9 +138,9 @@ abstract class Model extends \Eloquent {
 			return $this->convertToArray ();
 		} else {
 			if (empty($this->getRelations ())) {
-				$key = $this->getArrayCacheKeyForSingleResourceWithoutRelations ();
+				$key = Cache::getArrayCacheKeyForSingleResourceWithoutRelations($this->getResourceType(), $this->getKey());
 			} else {
-				$key = $this->getArrayCacheKeyForSingleResource ();
+				$key = Cache::getArrayCacheKeyForSingleResource($this->getResourceType(), $this->getKey());
 			}
 			return Cache::remember (
 				$key, static::$cacheTime,
@@ -281,18 +282,7 @@ abstract class Model extends \Eloquent {
 	private function getFormattedTimestamp ($date) {
 		return Carbon::createFromFormat ("Y-m-d H:i:s", $date)->format ('c');
 	}
-
-	/**
-	 * @return string
-	 */
-	public function getArrayCacheKeyForSingleResource () {
-		return $this->getResourceType () . ":array:" . $this->getKey () . ":relations";
-	}
-
-	public function getArrayCacheKeyForSingleResourceWithoutRelations () {
-		return $this->getResourceType () . ":array:" . $this->getKey () . ":no_relations";
-	}
-
+	
 	public static function allowsModifyingByAllUsers () {
 		return static::$allowsModifyingByAllUsers;
 	}
