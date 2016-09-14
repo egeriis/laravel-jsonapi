@@ -3,7 +3,6 @@
 namespace EchoIt\JsonApi;
 
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Database\Eloquent\Model as BaseModel;
 use Illuminate\Support\Pluralizer;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Relations\Pivot;
@@ -294,7 +293,7 @@ abstract class Model extends \Eloquent {
 		return $this->getResourceType () . ":array:" . $this->getKey () . ":no_relations";
 	}
 
-	static function allowsModifyingByAllUsers () {
+	public static function allowsModifyingByAllUsers () {
 		return static::$allowsModifyingByAllUsers;
 	}
 

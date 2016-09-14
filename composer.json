@@ -1,7 +1,12 @@
 {
     "name": "iamjulianacosta/laravel-jsonapi",
+	"description": "JSON API using laravel 5",
     "license": "MIT",
     "authors": [
+        {
+            "name": "Julián Acosta",
+            "email": "iam@julianacosta.me"
+        },
         {
             "name": "Ronni Egeriis Persson",
             "email": "ronni@egeriis.me"
@@ -9,11 +14,7 @@
 		{
             "name": "Jared Chapiewsky",
             "email": "chapiewsky@earthlinginteractive.com"
-        },
-        {
-            "name": "Julián Acosta",
-            "email": "iam@julianacosta.me"
-        }  
+        }
     ],
     "require": {
         "illuminate/database": "5.1.*",

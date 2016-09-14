@@ -4,8 +4,6 @@
 	
 	use EchoIt\JsonApi\Exception;
 	use Illuminate\Database\Eloquent\Relations\BelongsTo;
-	use Illuminate\Database\Eloquent\Relations\HasOneOrMany;
-	use Illuminate\Database\Eloquent\Relations\MorphMany;
 	use Illuminate\Database\Eloquent\Relations\MorphOneOrMany;
 	use Illuminate\Database\Eloquent\Relations\Relation;
 	use Illuminate\Http\JsonResponse;
@@ -13,6 +11,7 @@
 	use Illuminate\Http\Response as BaseResponse;
 	use Illuminate\Support\Pluralizer;
 	use Illuminate\Pagination\LengthAwarePaginator;
+	use Illuminate\Pagination\Paginator;
 	use function Stringy\create as s;
 	use Cache;
 
@@ -142,7 +141,7 @@
 		 *
 		 * @return mixed
 		 */
-		private function fulfillCacheableRequest ($models, $request) {
+		private function fulfillCacheableRequest ($models, Request $request) {
 			$id = $request->id;
 			if (empty($id)) {
 				$key = $this->getResponseCacheForMultipleResources ();
@@ -284,7 +283,7 @@
 		public function handleGet (Request $request) {
 			$id = $request->id;
 			if (empty($id)) {
-				$models = $this->handleGetAll ($request);
+				$models = $this->handleGetAll ();
 
 				return $models;
 			}
@@ -310,7 +309,7 @@
 		 *
 		 * @return \Illuminate\Database\Eloquent\Collection
 		 */
-		protected function handleGetAll (Request $request) {
+		protected function handleGetAll () {
 			$key = $this->getQueryCacheForMultipleResources ();
 			$modelName = $this->fullModelName;
 			$models = Cache::remember (
@@ -652,7 +651,7 @@
 		 * @param null $id
 		 * @param Model $model
 		 */
-		private function clearCache ($id = null, $model = null) {
+		private function clearCache ($id = null, Model $model = null) {
 			//ID passed = update record
 			if ($id !== null && $model !== null) {
 				$key = $this->getQueryCacheForSingleResource ($id);
@@ -794,7 +793,7 @@
 		 * @param LengthAwarePaginator $paginator
 		 * @return array
 		 */
-		protected function getPaginationLinks($paginator)
+		protected function getPaginationLinks(LengthAwarePaginator $paginator)
 		{
 			$links = [];
 
@@ -884,12 +883,12 @@
 		/**
 		 * Returns the models from a relationship. Will always return as array.
 		 *
-		 * @param  \Illuminate\Database\Eloquent\Model $model
+		 * @param  Model $model
 		 * @param  string $relationKey
 		 * @return array|\Illuminate\Database\Eloquent\Collection
 		 * @throws Exception
 		 */
-		protected static function getModelsForRelation($model, $relationKey)
+		protected static function getModelsForRelation(Model $model, $relationKey)
 		{
 			if (!method_exists($model, $relationKey)) {
 				throw new Exception(
@@ -971,7 +970,7 @@
 		 * @param integer $total the total number of records
 		 * @return \Illuminate\Pagination\LengthAwarePaginator
 		 */
-		protected function handlePaginationRequest($request, $model, $total = null)
+		protected function handlePaginationRequest(Request $request, Model $model, $total = null)
 		{
 			$page = $request->pageNumber;
 			$perPage = $request->pageSize;
@@ -980,7 +979,7 @@
 			}
 			$results = $model->forPage($page, $perPage)->get(array('*'));
 			$paginator = new LengthAwarePaginator($results, $total, $perPage, $page, [
-				'path' => Paginator::resolveCurrentPath(),
+				'path' => Illuminate\Pagination\Paginator::resolveCurrentPath(),
 				'pageName' => 'page[number]'
 			]);
 			$paginator->appends('page[size]', $perPage);
@@ -1091,7 +1090,7 @@
 		 * @return \EchoIt\JsonApi\Model
 		 * @throws Exception
 		 */
-		public function handlePostDefault(Request $request, $model)
+		public function handlePostDefault(Request $request, Model $model)
 		{
 			$values = $this->parseRequestContent ($request->content);
 			$this->validateModelData($model, $values);
