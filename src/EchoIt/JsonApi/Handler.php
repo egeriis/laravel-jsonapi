@@ -979,7 +979,7 @@
 			}
 			$results = $model->forPage($page, $perPage)->get(array('*'));
 			$paginator = new LengthAwarePaginator($results, $total, $perPage, $page, [
-				'path' => Illuminate\Pagination\Paginator::resolveCurrentPath(),
+				'path' => Paginator::resolveCurrentPath(),
 				'pageName' => 'page[number]'
 			]);
 			$paginator->appends('page[size]', $perPage);
