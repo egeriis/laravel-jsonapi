@@ -271,8 +271,8 @@ abstract class Model extends \Eloquent {
 		return $className;
 	}
 	
-	public function getCreatedAtAttribute ($value) {
-		return $this->getFormattedTimestamp ($value);
+	public function getCreatedAtAttribute ($date) {
+		return $this->getFormattedTimestamp ($date);
 	}
 
 	public function getUpdatedAtAttribute ($date) {
@@ -280,7 +280,7 @@ abstract class Model extends \Eloquent {
 	}
 
 	private function getFormattedTimestamp ($date) {
-		if (is_null($value !== false)) {
+		if (is_null($date !== false)) {
 			return Carbon::createFromFormat("Y-m-d H:i:s", $date)->format('c');
 		}
 		return null;
