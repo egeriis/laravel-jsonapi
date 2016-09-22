@@ -280,7 +280,10 @@ abstract class Model extends \Eloquent {
 	}
 
 	private function getFormattedTimestamp ($date) {
-		return Carbon::createFromFormat ("Y-m-d H:i:s", $date)->format ('c');
+		if (is_null($value !== false)) {
+			return Carbon::createFromFormat("Y-m-d H:i:s", $date)->format('c');
+		}
+		return null;
 	}
 	
 	public static function allowsModifyingByAllUsers () {
