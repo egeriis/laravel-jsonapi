@@ -54,72 +54,72 @@ In few steps you can expose your models:
     Your controller is responsible to handling input, instantiating a handler class and returning the response.
 
     ```php
-<?php namespace App\Http\Controllers;
-
-use EchoIt\JsonApi\Request as ApiRequest;
-use EchoIt\JsonApi\ErrorResponse as ApiErrorResponse;
-use EchoIt\JsonApi\Exception as ApiException;
-use Request;
-
-class ApiController extends Controller
-{
-    /**
-     * Create handler name from request name
-     *
-     * @param $requestedResource string The name of the model (in plural)
-     *
-     * @return string Class name of related resource
-   	 */
-   	public function getHandlerClassName($requestedResource) {
-   		$modelName = Pluralizer::singular($requestedResource);
-  
-    	return 'App\\Handlers\\' . ucfirst($modelName) . 'Handler';
-    }
-    
-    public function handleRequest($requestedResource, $id = null)
-    {
-        /**
-         * Create handler name from model name
-         * @var string
-         */
-        $handlerClass = $this->getHandlerClassName($requestedResource);
-
-        if (class_exists($handlerClass)) {
-			$url = Request::url();
-            $method = Request::method();
-            $include = ($i = Request::input('include')) ? explode(',', $i) : $i;
-			$sort = ($i = Request::input('sort')) ? explode(',', $i) : $i;
-			$filter = ($i = Request::except('sort', 'include', 'page')) ? $i : [];
-			$content = Request::getContent();
+		 <?php 
+			namespace App\Http\Controllers;
+		
+			use EchoIt\JsonApi\Request as ApiRequest;
+			use EchoIt\JsonApi\ErrorResponse as ApiErrorResponse;
+			use EchoIt\JsonApi\Exception as ApiException;
+			use Request;
+		
+			class ApiController extends Controller {
+			    /**
+			     * Create handler name from request name
+			     *
+			     * @param $requestedResource string The name of the model (in plural)
+			     *
+			     * @return string Class name of related resource
+			     */
+			    public function getHandlerClassName($requestedResource) {
+			        $modelName = Pluralizer::singular($requestedResource);
+			  
+			        return 'App\\Handlers\\' . ucfirst($modelName) . 'Handler';
+			    }
+			    
+			    public function handleRequest($requestedResource, $id = null)
+			    {
+			        /**
+			         * Create handler name from model name
+			         * @var string
+			         */
+			        $handlerClass = $this->getHandlerClassName($requestedResource);
 			
-			$page = Request::input('page');
-			$pageSize = null;
-			$pageNumber = null;
-			if($page) {
-				if(is_array($page) && !empty($page['size']) && !empty($page['number'])) {
-					$pageSize = $page['size'];
-					$pageNumber = $page['number'];
-				} else {
-					 return new ApiErrorResponse(400, 400, 'Expected page[size] and page[number]');
-				}
+			        if (class_exists($handlerClass)) {
+						$url = Request::url();
+			            $method = Request::method();
+			            $include = ($i = Request::input('include')) ? explode(',', $i) : $i;
+						$sort = ($i = Request::input('sort')) ? explode(',', $i) : $i;
+						$filter = ($i = Request::except('sort', 'include', 'page')) ? $i : [];
+						$content = Request::getContent();
+						
+						$page = Request::input('page');
+						$pageSize = null;
+						$pageNumber = null;
+						if($page) {
+							if(is_array($page) && !empty($page['size']) && !empty($page['number'])) {
+								$pageSize = $page['size'];
+								$pageNumber = $page['number'];
+							} else {
+								 return new ApiErrorResponse(400, 400, 'Expected page[size] and page[number]');
+							}
+						}
+			            $request = new ApiRequest(Request::url(), $method, $id, $content, $include, $sort, $filter, $pageNumber, $pageSize);
+			            $handler = new $handlerClass($request);
+			
+			            // A handler can throw EchoIt\JsonApi\Exception which must be gracefully handled to give proper response
+			            try {
+			                $res = $handler->fulfillRequest();
+			            } catch (ApiException $e) {
+			                return $e->response();
+			            }
+						
+			            return $res->toJsonResponse();
+			        }
+			
+			        // If a handler class does not exist for requested model, it is not considered to be exposed in the API
+			        return new ApiErrorResponse(404, 404, 'Entity not found');
+			    }
 			}
-            $request = new ApiRequest(Request::url(), $method, $id, $content, $include, $sort, $filter, $pageNumber, $pageSize);
-            $handler = new $handlerClass($request);
-
-            // A handler can throw EchoIt\JsonApi\Exception which must be gracefully handled to give proper response
-            try {
-                $res = $handler->fulfillRequest();
-            } catch (ApiException $e) {
-                return $e->response();
-            }
-			
-            return $res->toJsonResponse();
-        }
-
-        // If a handler class does not exist for requested model, it is not considered to be exposed in the API
-        return new ApiErrorResponse(404, 404, 'Entity not found');
-    }
-}
     ```
 
 3. **Create a handler for your model**
@@ -135,51 +135,51 @@ class ApiController extends Controller
     Requests are automatically routed to appropriate handle functions.
 
     ```php
-<?php namespace App\Handlers;
-
-use Symfony\Component\HttpFoundation\Response;
-use App\Models\User;
-
-use EchoIt\JsonApi\Exception as ApiException;
-use EchoIt\JsonApi\Request as ApiRequest;
-use EchoIt\JsonApi\Handler as ApiHandler;
-use Request;
-
-/**
- * Handles API requests for Users.
- */
-class UsersHandler extends ApiHandler
-{
-	const ERROR_SCOPE = 1024;
-	
-	/*
-	* List of relations that can be included in response.
-	* (eg. 'friend' could be included with ?include=friend)
-	*/
-	protected static $exposedRelations = [];
-	
-	/**
-	 * Handles GET requests. 
-	 * @param EchoIt\JsonApi\Request $request
-	 * @return EchoIt\JsonApi\Model|Illuminate\Support\Collection|EchoIt\JsonApi\Response|Illuminate\Pagination\LengthAwarePaginator
-	 */
-	public function handleGet(ApiRequest $request)
-	{
-		//you can use the default GET functionality, or override with your own 
-		return $this->handleGetDefault($request, new User);
-	}
-	
-	/**
-	 * Handles PUT requests. 
-	 * @param EchoIt\JsonApi\Request $request
-	 * @return EchoIt\JsonApi\Model|Illuminate\Support\Collection|EchoIt\JsonApi\Response
-	 */
-	public function handlePut(ApiRequest $request)
-	{
-		//you can use the default PUT functionality, or override with your own
-		return $this->handlePutDefault($request, new User);
-	}
-}
+		<?php namespace App\Handlers;
+		
+		use Symfony\Component\HttpFoundation\Response;
+		use App\Models\User;
+		
+		use EchoIt\JsonApi\Exception as ApiException;
+		use EchoIt\JsonApi\Request as ApiRequest;
+		use EchoIt\JsonApi\Handler as ApiHandler;
+		use Request;
+		
+		/**
+		 * Handles API requests for Users.
+		 */
+		class UsersHandler extends ApiHandler
+		{
+			const ERROR_SCOPE = 1024;
+			
+			/*
+			* List of relations that can be included in response.
+			* (eg. 'friend' could be included with ?include=friend)
+			*/
+			protected static $exposedRelations = [];
+			
+			/**
+			 * Handles GET requests. 
+			 * @param EchoIt\JsonApi\Request $request
+			 * @return EchoIt\JsonApi\Model|Illuminate\Support\Collection|EchoIt\JsonApi\Response|Illuminate\Pagination\LengthAwarePaginator
+			 */
+			public function handleGet(ApiRequest $request)
+			{
+				//you can use the default GET functionality, or override with your own 
+				return $this->handleGetDefault($request, new User);
+			}
+			
+			/**
+			 * Handles PUT requests. 
+			 * @param EchoIt\JsonApi\Request $request
+			 * @return EchoIt\JsonApi\Model|Illuminate\Support\Collection|EchoIt\JsonApi\Response
+			 */
+			public function handlePut(ApiRequest $request)
+			{
+				//you can use the default PUT functionality, or override with your own
+				return $this->handlePutDefault($request, new User);
+			}
+		}
     ```
 
     > **Note:** Extend your models from `EchoIt\JsonApi\Model` rather than `Eloquent` to get the proper response for linked resources.
